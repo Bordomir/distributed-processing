@@ -33,8 +33,10 @@
 extern int rank;
 extern int size;
 extern int lamportClock;
+extern int queueClock;
 extern int pairAckCount;
 extern int asteroidAckCount;
+extern int asteroidCount;
 extern std::priority_queue<std::pair<int,int>> pairQueue;
 typedef enum {
     InRun, 
@@ -89,5 +91,13 @@ void changeClock( int );
 void updateClock( int );
 
 void sendAllTelepaths( packet_t*, int );
+
+void enterPairQueue();
+void pairACK( int );
+void exitPairQueue();
+
+void enterAsteroidQueue();
+void asteroidACK( int );
+void exitAsteroidQueue();
 
 #endif

@@ -120,3 +120,94 @@ void sendAllTelepaths(packet_t *pkt, int tag)
     }
 }
 
+void enterPairQueue()
+{
+    println("Entering the pair queue to pair with another telepath")
+
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    pairAckCount = 0;
+
+    int currentClock = lamportClock;
+    packet_t *pkt;
+    pkt->ts = currentClock;
+    queueClock = currentClock;
+
+    sendAllTelepaths(pkt, PAIR_REQ);
+    println("Sent messages PAIR_REQ to all telepaths")
+}
+
+void pairACK(int destination)
+{
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    packet_t *pkt;
+    pkt->ts = lamportClock;
+
+    sendPacket(pkt, destination, PAIR_ACK);
+    println("Sent PAIR_ACK to %d", destination)
+}
+
+void exitPairQueue()
+{
+    println("Exiting the pair queue after finding pair")
+
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    queueClock = -1;
+
+    packet_t *pkt;
+    pkt->ts = lamportClock;
+
+    sendAllTelepaths(pkt, PAIR_RELEASE);
+    println("Sent messages PAIR_RELEASE to all telepaths")
+}
+
+void enterAsteroidQueue()
+{
+    println("Entering the asteroid queue to destroy asteroid")
+
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    asteroidAckCount = 0;
+
+    int currentClock = lamportClock;
+    packet_t *pkt;
+    pkt->ts = currentClock;
+    queueClock = currentClock;
+
+    sendAllTelepaths(pkt, ASTEROID_REQ);
+    println("Sent messages ASTEROID_REQ to all telepaths")
+}
+
+void asteroidACK(int destination)
+{
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    packet_t *pkt;
+    pkt->ts = lamportClock;
+    sendPacket(pkt, destination, ASTEROID_ACK);
+    println("Sent ASTEROID_ACK to %d", destination)
+}
+
+void exitAsteroidQueue()
+{
+    println("Exiting the asteroid queue after destroying asteroid")
+
+    incrementClock();
+    debug("lamportClock: %d", lamportClock)
+
+    queueClock = -1;
+
+    packet_t *pkt;
+    pkt->ts = lamportClock;
+
+    sendAllTelepaths(pkt, ASTEROID_RELEASE);
+    println("Sent messages ASTEROID_RELEASE to all telepaths")
+}
+

@@ -2,7 +2,7 @@
 #include "watek_glowny.h"
 #include "watek_komunikacyjny.h"
 
-int rank, size, lamportClock, pairAckCount, asteroidAckCount;
+int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount;
 std::priority_queue<std::pair<int,int>> pairQueue;
 // state_t stan=InRun;
 state_t stan=REST;
@@ -58,6 +58,8 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     lamportClock = 0;
+    queueClock = -1;
+    asteroidCount = 0;
     pthread_cond_init(&cond, NULL);
     pthread_create( &threadKom, NULL, startKomWatek , 0);
 

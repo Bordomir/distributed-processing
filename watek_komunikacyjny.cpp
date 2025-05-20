@@ -14,7 +14,7 @@ void observatoryKom()
             default:
                 updateClock(pakiet.ts);
                 incrementClock();
-                debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
+                println("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
 	    break;
         }
     }
@@ -22,31 +22,46 @@ void observatoryKom()
 
 void manageMessageREST(packet_t pakiet, MPI_Status status)
 {
+    updateClock(pakiet.ts);
+    // incrementClock();
+    debug("lamportClock: %d", lamportClock)
     switch ( status.MPI_TAG ) {
         case PAIR_REQ:
-            println("Received PAIR_REQ from ")
-            updateClock(pakiet.ts);
-            incrementClock();
-
             pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
-            packet_t *pkt;
-            pkt->ts = lamportClock;
-            sendPacket(pkt, status.MPI_SOURCE, PAIR_ACK);
-            println("Sent PAIR_ACK to %d", status.MPI_SOURCE)
+            pairACK(status.MPI_SOURCE);
 
             break;
         case PAIR_RELEASE:
-            updateClock(pakiet.ts);
             incrementClock();
+            debug("lamportClock: %d", lamportClock)
 
             pairQueue.pop();
             pairQueue.pop();
+            println("Removed 2 processes from the pair queue")
+            
+            break;
+        case ASTEROID_REQ:
+            asteroidACK(status.MPI_SOURCE);
+            
+            break;
+        case ASTEROID_RELEASE:
+            incrementClock();
+            debug("lamportClock: %d", lamportClock)
+
+            asteroidCount--;
+            println("Destroyed 1 asteroid and removed 1 process from the asteroid queue")
+            
+            break;
+        case ASTEROID_FOUND:
+            incrementClock();
+            debug("lamportClock: %d", lamportClock)
+
+            asteroidCount += pakiet.data;
+            println("Observatory found %d new asteroids", pakiet.data)
             
             break;
         default:
-            updateClock(pakiet.ts);
-            incrementClock();
             debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
             break;
     }
@@ -74,7 +89,7 @@ void telepathKom()
     packet_t pakiet;
     while (TRUE)
     {
-	    debug("Wainting for message");
+	    println("Waiting for message");
         MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         state_t currentState = getState();
