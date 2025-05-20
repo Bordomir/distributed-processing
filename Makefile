@@ -1,5 +1,5 @@
-SOURCES=$(wildcard *.c)
-HEADERS=$(SOURCES:.c=.h)
+SOURCES=$(wildcard *.cpp)
+HEADERS=$(SOURCES:.cpp=.h)
 FLAGS=-DDEBUG -g
 
 all: main
@@ -13,4 +13,4 @@ clean:
 	rm main a.out
 
 run: main
-	mpirun -oversubscribe -np 8 ./main
+	mpirun -oversubscribe --allow-run-as-root -np 8 ./main

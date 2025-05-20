@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <queue>
+#include <utility>
 
 #include "util.h"
 /* boolean */
@@ -17,14 +19,38 @@
 
 #define ROOT 0
 
+#define ASTEROID_FOUND_PROB 25
+
+#define MIN_ASTEROID_FOUND 1
+#define MAX_ASTEROID_FOUND 5
+
+#define OBSERVATORY_SLEEP_MIN 1
+#define OBSERVATORY_SLEEP_MAX 5
+
+#define TELEPATH_SLEEP_MIN 5
+#define TELEPATH_SLEEP_MAX 15
+
 extern int rank;
 extern int size;
-typedef enum {InRun, InMonitor, InSend, InFinish} state_t;
+extern int lamportClock;
+extern int pairAckCount;
+extern int asteroidAckCount;
+extern std::priority_queue<std::pair<int,int>> pairQueue;
+typedef enum {
+    InRun, 
+    InMonitor, 
+    InSend, 
+    InFinish,
+    REST,           // stan początkowy lub proces odpoczywa po zniszczeniu asteroidy,
+    WAIT_PAIR,      // proces czeka na dobrania się w parę,
+    PAIRED,         // proces jest dobrany w parę ale nie znajduje się w kolejce asteroidQueue,
+    WAIT_ASTEROID   // proces jest dobrany w parę i czeka na asteroidę,
+    } state_t;
 extern state_t stan;
 extern pthread_t threadKom, threadMon;
 
-extern pthread_mutex_t stateMut;
-
+extern pthread_mutex_t stateMut, clockMut, condMut;
+extern pthread_cond_t cond;
 
 
 
@@ -47,14 +73,21 @@ extern pthread_mutex_t stateMut;
                                             
 */
 #ifdef DEBUG
-#define debug(FORMAT,...) printf("%c[%d;%dm [%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, ##__VA_ARGS__, 27,0,37);
+#define debug(FORMAT,...) printf("%c[%d;%dm [%d] [t%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, lamportClock, ##__VA_ARGS__, 27,0,37);
 #else
 #define debug(...) ;
 #endif
 
 // makro println - to samo co debug, ale wyświetla się zawsze
-#define println(FORMAT,...) printf("%c[%d;%dm [%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, ##__VA_ARGS__, 27,0,37);
+#define println(FORMAT,...) printf("%c[%d;%dm [%d] [t%d]: " FORMAT "%c[%d;%dm\n",  27, (1+(rank/7))%2, 31+(6+rank)%7, rank, lamportClock, ##__VA_ARGS__, 27,0,37);
 
+state_t getState();
 void changeState( state_t );
+
+void incrementClock();
+void changeClock( int );
+void updateClock( int );
+
+void sendAllTelepaths( packet_t*, int );
 
 #endif

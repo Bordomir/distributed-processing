@@ -1,0 +1,136 @@
+#include "main.h"
+#include "watek_komunikacyjny.h"
+
+void observatoryKom()
+{
+    MPI_Status status;
+    packet_t pakiet;
+    while (TRUE)
+    {
+	    println("Waiting for mesage");
+        MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        switch ( status.MPI_TAG ) {
+            default:
+                updateClock(pakiet.ts);
+                incrementClock();
+                debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
+	    break;
+        }
+    }
+}
+
+void manageMessageREST(packet_t pakiet, MPI_Status status)
+{
+    switch ( status.MPI_TAG ) {
+        case PAIR_REQ:
+            println("Received PAIR_REQ from ")
+            updateClock(pakiet.ts);
+            incrementClock();
+
+            pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
+            packet_t *pkt;
+            pkt->ts = lamportClock;
+            sendPacket(pkt, status.MPI_SOURCE, PAIR_ACK);
+            println("Sent PAIR_ACK to %d", status.MPI_SOURCE)
+
+            break;
+        case PAIR_RELEASE:
+            updateClock(pakiet.ts);
+            incrementClock();
+
+            pairQueue.pop();
+            pairQueue.pop();
+            
+            break;
+        default:
+            updateClock(pakiet.ts);
+            incrementClock();
+            debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
+            break;
+    }
+
+}
+
+void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
+{
+
+}
+
+void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
+{
+
+}
+
+void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
+{
+
+}
+
+void telepathKom()
+{
+    MPI_Status status;
+    packet_t pakiet;
+    while (TRUE)
+    {
+	    debug("Wainting for message");
+        MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        state_t currentState = getState();
+        debug("Received message in state %d with tag %s from %d", currentState, status.MPI_TAG, status.MPI_SOURCE);
+        switch (currentState)
+        {
+            case REST:
+                manageMessageREST(pakiet, status);
+                break;
+            case WAIT_PAIR:
+                manageMessageWAIT_PAIR(pakiet, status);
+                break;
+            case PAIRED:
+                manageMessagePAIRED(pakiet, status);
+                break;
+            case WAIT_ASTEROID:
+                manageMessageWAIT_ASTEROID(pakiet, status);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/* wątek komunikacyjny; zajmuje się odbiorem i reakcją na komunikaty */
+void *startKomWatek(void *ptr)
+{
+    switch (rank)
+    {
+        case ROOT:
+            observatoryKom();
+            break;
+        default:
+            telepathKom();
+            break;
+    }
+
+/*
+    MPI_Status status;
+    int is_message = FALSE;
+    packet_t pakiet;
+    // Obrazuje pętlę odbierającą pakiety o różnych typach 
+    while ( stan!=InFinish ) {
+	    debug("czekam na recv");
+        MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        switch ( status.MPI_TAG ) {
+            case FINISH: 
+                changeState(InFinish);
+                break;
+            case APP_PKT: 
+                debug("Dostałem pakiet od %d z danymi %d",pakiet.src, pakiet.data);
+                break;
+            default:
+	    break;
+        }
+    }
+*/
+}
