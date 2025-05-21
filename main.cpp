@@ -6,6 +6,7 @@ int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, astero
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 std::vector<bool> isPairAckReceived;
 std::vector<bool> isAsteroidAckReceived;
+std::set<int> pairsCreated;
 // state_t stan=InRun;
 int stan = REST;
 pthread_t threadKom, threadMon;

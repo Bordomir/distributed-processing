@@ -199,16 +199,31 @@ void incrementPairACK(int process)
 
 void tryToPair()
 {
+    // tworzą się nieświadome trójki
+    // przez to że kolejki nie są identyczne i mogą pop robić na innych elementach niż powinno bo REQ są za wolne
+//  [4] [t14]: Found a pair
+//  [4] [t14]: Sent PAIR_PROPOSAL to 6
+//  [4] [t14]: Sent messages PAIR_RELEASE to all telepaths
+//  [4] [t15]: Paired with other telepath
+//  [6] [t13]: Found a pair
+//  [6] [t13]: Sent PAIR_PROPOSAL to 2
+//  [6] [t13]: Sent messages PAIR_RELEASE to all telepaths
+//  [6] [t16]: Paired with other telepath
+
     debug("Początek próby parowania");
+    
+    println()
     if (pairQueue.empty())
     {
+        println("Pair queue is empty");
         debug("Koniec próby parowania");
         return;
     }
     int topQueue = pairQueue.top().second;
-    if ((pairAckCount >= size - 2) && (topQueue != rank))
+    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pairsCreated.empty()))
     {
         println("Found a pair");
+        println("pair:%d; ts:%d",topQueue, pairQueue.top().first);
 
         packet_t pkt;
         pkt.ts = lamportClock;
@@ -217,6 +232,8 @@ void tryToPair()
         println("Sent PAIR_PROPOSAL to %d", topQueue);
 
         pair = topQueue;
+
+        pkt.data = pair;
 
         sendAllTelepaths(&pkt, PAIR_RELEASE);
         println("Sent messages PAIR_RELEASE to all telepaths");

@@ -9,6 +9,9 @@
 #include <pthread.h>
 #include <queue>
 #include <utility>
+#include <vector>
+#include <set>
+#include <string>
 
 #include "util.h"
 /* boolean */
@@ -47,6 +50,7 @@ extern int asteroidAckCount;
 extern std::vector<bool> isAsteroidAckReceived;
 extern int asteroidCount;
 extern int pair;
+extern std::set<int> pairsCreated;
 
 extern int providedMode;
 // typedef enum

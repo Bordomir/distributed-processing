@@ -49,16 +49,28 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case PAIR_REQ:
     {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
-
+        
         pairACK(status.MPI_SOURCE);
+        
+        if(pairsCreated.count(status.MPI_SOURCE)){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+            pairsCreated.erase(status.MPI_SOURCE);
+        }
 
         break;
     }
     case PAIR_RELEASE:
     {
-        pairQueue.pop();
-        pairQueue.pop();
-        // println("Removed 2 processes from the pair queue");
+        int topQueue = pairQueue.top().second;
+        if(topQueue == pakiet.data){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+        }else{
+            pairsCreated.insert(pakiet.data);
+        }
 
         break;
     }
@@ -112,6 +124,13 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
                 pairACK(status.MPI_SOURCE);
             }
         }
+        
+        if(pairsCreated.count(status.MPI_SOURCE)){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+            pairsCreated.erase(status.MPI_SOURCE);
+        }
 
         tryToPair();
 
@@ -119,14 +138,19 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_RELEASE:
     {
-        int process = pairQueue.top().second;
-        pairQueue.pop();
-        incrementPairACK(process);
+        int topQueue = pairQueue.top().second;
+        if(topQueue == pakiet.data){
+            int process = pairQueue.top().second;
+            pairQueue.pop();
+            incrementPairACK(process);
 
-        process = pairQueue.top().second;
-        pairQueue.pop();
-        incrementPairACK(process);
-        // println("Removed 2 processes from the pair queue");
+            process = pairQueue.top().second;
+            pairQueue.pop();
+            incrementPairACK(process);
+            // println("Removed 2 processes from the pair queue");
+        }else{
+            pairsCreated.insert(pakiet.data);
+        }
 
         tryToPair();
 
@@ -185,14 +209,26 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
+        
+        if(pairsCreated.count(status.MPI_SOURCE)){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+            pairsCreated.erase(status.MPI_SOURCE);
+        }
 
         break;
     }
     case PAIR_RELEASE:
     {
-        pairQueue.pop();
-        pairQueue.pop();
-        // println("Removed 2 processes from the pair queue");
+        int topQueue = pairQueue.top().second;
+        if(topQueue == pakiet.data){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+        }else{
+            pairsCreated.insert(pakiet.data);
+        }
 
         break;
     }
@@ -237,14 +273,26 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
+        
+        if(pairsCreated.count(status.MPI_SOURCE)){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+            pairsCreated.erase(status.MPI_SOURCE);
+        }
 
         break;
     }
     case PAIR_RELEASE:
     {
-        pairQueue.pop();
-        pairQueue.pop();
-        // println("Removed 2 processes from the pair queue");
+        int topQueue = pairQueue.top().second;
+        if(topQueue == pakiet.data){
+            pairQueue.pop();
+            pairQueue.pop();
+            // println("Removed 2 processes from the pair queue");
+        }else{
+            pairsCreated.insert(pakiet.data);
+        }
 
         break;
     }
