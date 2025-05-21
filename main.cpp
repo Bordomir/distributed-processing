@@ -2,14 +2,14 @@
 #include "watek_glowny.h"
 #include "watek_komunikacyjny.h"
 
-int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair;
+int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair, providedMode;
 std::priority_queue<std::pair<int, int>> pairQueue;
 std::vector<bool> isPairAckReceived;
 std::vector<bool> isAsteroidAckReceived;
 // state_t stan=InRun;
 state_t stan = REST;
 pthread_t threadKom, threadMon;
-pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER, clockMut = PTHREAD_MUTEX_INITIALIZER, condMut = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER, clockMut = PTHREAD_MUTEX_INITIALIZER, mpiMut = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 void finalizuj()
@@ -63,8 +63,9 @@ int main(int argc, char **argv)
     lamportClock = 0;
     queueClock = -1;
     asteroidCount = 0;
-    isPairAckReceived.resize(size);
-    isAsteroidAckReceived.resize(size);
+    isPairAckReceived.resize(size, false);
+    isAsteroidAckReceived.resize(size, false);
+    providedMode = provided;
     pthread_cond_init(&cond, NULL);
     pthread_create(&threadKom, NULL, startKomWatek, 0);
 

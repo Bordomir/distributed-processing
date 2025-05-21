@@ -8,7 +8,16 @@ void observatoryKom()
     while (true)
     {
         println("Waiting for mesage");
-        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        if (providedMode == MPI_THREAD_SERIALIZED)
+        {
+            pthread_mutex_lock(&mpiMut);
+            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            pthread_mutex_unlock(&mpiMut);
+        }
+        else
+        {
+            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        }
 
         switch (status.MPI_TAG)
         {
@@ -283,7 +292,16 @@ void telepathKom()
     while (true)
     {
         // println("Waiting for message");
-        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        if (providedMode == MPI_THREAD_SERIALIZED)
+        {
+            pthread_mutex_lock(&mpiMut);
+            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            pthread_mutex_unlock(&mpiMut);
+        }
+        else
+        {
+            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        }
 
         state_t currentState = getState();
         debug("Received message in state %d with tag %s from %d", currentState, status.MPI_TAG, status.MPI_SOURCE);

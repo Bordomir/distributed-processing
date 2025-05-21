@@ -42,6 +42,8 @@ extern int asteroidAckCount;
 extern std::vector<bool> isAsteroidAckReceived;
 extern int asteroidCount;
 extern int pair;
+
+extern int providedMode;
 typedef enum
 {
     // InRun,
@@ -56,7 +58,7 @@ typedef enum
 extern state_t stan;
 extern pthread_t threadKom, threadMon;
 
-extern pthread_mutex_t stateMut, clockMut, condMut;
+extern pthread_mutex_t stateMut, clockMut, mpiMut;
 extern pthread_cond_t cond;
 
 /* macro debug - działa jak printf, kiedy zdefiniowano

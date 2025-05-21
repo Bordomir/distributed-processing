@@ -61,7 +61,17 @@ void sendPacket(packet_t *pkt, int destination, int tag)
         freepkt = 1;
     }
     // pkt->src = rank;
-    MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+
+    if (providedMode == MPI_THREAD_SERIALIZED)
+    {
+        pthread_mutex_lock(&mpiMut);
+        MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+        pthread_mutex_unlock(&mpiMut);
+    }
+    else
+    {
+        MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+    }
     debug("Wysyłam %s do %d\n", tag2string(tag), destination);
     if (freepkt)
         delete pkt;
@@ -152,21 +162,24 @@ void enterPairQueue()
     pairAckCount = 0;
 
     int currentClock = lamportClock;
-    packet_t *pkt;
+    packet_t *pkt = new packet_t;
     pkt->ts = currentClock;
     queueClock = currentClock;
-
     sendAllTelepaths(pkt, PAIR_REQ);
-    // println("Sent messages PAIR_REQ to all telepaths");
+    println("Sent messages PAIR_REQ to all telepaths");
+
+    delete pkt;
 }
 
 void pairACK(int destination)
 {
-    packet_t *pkt;
+    packet_t *pkt = new packet_t;
     pkt->ts = lamportClock;
 
     sendPacket(pkt, destination, PAIR_ACK);
     // println("Sent PAIR_ACK to %d", destination);
+
+    delete pkt;
 }
 
 void incrementPairACK(int process)
@@ -185,7 +198,8 @@ void tryToPair()
         topQueue != rank)
     {
         println("Found a pair");
-        packet_t *pkt;
+
+        packet_t *pkt = new packet_t;
         pkt->ts = lamportClock;
 
         sendPacket(pkt, topQueue, PAIR_PROPOSAL);
@@ -195,6 +209,8 @@ void tryToPair()
 
         sendAllTelepaths(pkt, PAIR_RELEASE);
         // println("Sent messages PAIR_RELEASE to all telepaths");
+
+        delete pkt;
 
         changeState(PAIRED);
     }
@@ -206,11 +222,13 @@ void exitPairQueue()
 
     queueClock = -1;
 
-    packet_t *pkt;
+    packet_t *pkt = new packet_t;
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, PAIR_RELEASE);
     // println("Sent messages PAIR_RELEASE to all telepaths");
+
+    delete pkt;
 }
 
 void enterAsteroidQueue()
@@ -224,20 +242,26 @@ void enterAsteroidQueue()
     asteroidAckCount = 0;
 
     int currentClock = lamportClock;
-    packet_t *pkt;
+
+    packet_t *pkt = new packet_t;
     pkt->ts = currentClock;
     queueClock = currentClock;
 
     sendAllTelepaths(pkt, ASTEROID_REQ);
     // println("Sent messages ASTEROID_REQ to all telepaths");
+
+    delete pkt;
 }
 
 void asteroidACK(int destination)
 {
-    packet_t *pkt;
+
+    packet_t *pkt = new packet_t;
     pkt->ts = lamportClock;
     sendPacket(pkt, destination, ASTEROID_ACK);
     // println("Sent ASTEROID_ACK to %d", destination);
+
+    delete pkt;
 }
 
 void incrementAsteroidACK(int process)
@@ -255,13 +279,15 @@ void tryToDestroyAsteroid()
     {
         println("Received right to destroy asteroid");
 
-        packet_t *pkt;
+        packet_t *pkt = new packet_t;
         pkt->ts = lamportClock;
 
         pair = -1;
 
         sendAllTelepaths(pkt, ASTEROID_RELEASE);
         // println("Sent messages ASTEROID_RELEASE to all telepaths");
+
+        delete pkt;
 
         changeState(REST);
     }
@@ -273,9 +299,11 @@ void exitAsteroidQueue()
 
     queueClock = -1;
 
-    packet_t *pkt;
+    packet_t *pkt = new packet_t;
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, ASTEROID_RELEASE);
     // println("Sent messages ASTEROID_RELEASE to all telepaths");
+
+    delete pkt;
 }
