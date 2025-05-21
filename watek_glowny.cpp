@@ -37,7 +37,7 @@ void telepath()
     int tag;
     while (true)
     {
-        state_t currentState = getState();
+        int currentState = getState();
         switch (currentState)
         {
         case REST:

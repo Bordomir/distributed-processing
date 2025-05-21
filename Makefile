@@ -19,4 +19,4 @@ run: main
 	mpirun -oversubscribe --allow-run-as-root -np 8 ./main
 
 drun: debug
-	mpirun -oversubscribe --allow-run-as-root -np 8 ./main
+	mpirun --allow-run-as-root -np 8 ./main

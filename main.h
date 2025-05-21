@@ -30,12 +30,17 @@
 #define TELEPATH_SLEEP_MIN 5
 #define TELEPATH_SLEEP_MAX 15
 
+#define REST 11          // stan początkowy lub proces odpoczywa po zniszczeniu asteroidy,
+#define WAIT_PAIR 12     // proces czeka na dobrania się w parę,
+#define PAIRED 13        // proces jest dobrany w parę ale nie znajduje się w kolejce asteroidQueue,
+#define WAIT_ASTEROID 14 // proces jest dobrany w parę i czeka na asteroidę,
+
 extern int rank;
 extern int size;
 
 extern int lamportClock;
 extern int queueClock;
-extern std::priority_queue<std::pair<int, int>> pairQueue;
+extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 extern int pairAckCount;
 extern std::vector<bool> isPairAckReceived;
 extern int asteroidAckCount;
@@ -44,18 +49,18 @@ extern int asteroidCount;
 extern int pair;
 
 extern int providedMode;
-typedef enum
-{
-    // InRun,
-    // InMonitor,
-    // InSend,
-    // InFinish,
-    REST,         // stan początkowy lub proces odpoczywa po zniszczeniu asteroidy,
-    WAIT_PAIR,    // proces czeka na dobrania się w parę,
-    PAIRED,       // proces jest dobrany w parę ale nie znajduje się w kolejce asteroidQueue,
-    WAIT_ASTEROID // proces jest dobrany w parę i czeka na asteroidę,
-} state_t;
-extern state_t stan;
+// typedef enum
+// {
+// InRun,
+// InMonitor,
+// InSend,
+// InFinish,
+// REST,         // stan początkowy lub proces odpoczywa po zniszczeniu asteroidy,
+// WAIT_PAIR,    // proces czeka na dobrania się w parę,
+// PAIRED,       // proces jest dobrany w parę ale nie znajduje się w kolejce asteroidQueue,
+// WAIT_ASTEROID // proces jest dobrany w parę i czeka na asteroidę,
+// } state_t;
+extern int stan;
 extern pthread_t threadKom, threadMon;
 
 extern pthread_mutex_t stateMut, clockMut, mpiMut;
@@ -88,9 +93,9 @@ extern pthread_cond_t cond;
 // makro println - to samo co debug, ale wyświetla się zawsze
 #define println(FORMAT, ...) printf("%c[%d;%dm [%d] [t%d]: " FORMAT "%c[%d;%dm\n", 27, (1 + (rank / 7)) % 2, 31 + (6 + rank) % 7, rank, lamportClock, ##__VA_ARGS__, 27, 0, 37);
 
-state_t getState();
-void changeState(state_t);
-void waitForStateChange(state_t);
+int getState();
+void changeState(int);
+void waitForStateChange(int);
 
 void incrementClock();
 void changeClock(int);

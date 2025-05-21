@@ -4,19 +4,31 @@
 void observatoryKom()
 {
     MPI_Status status;
+    MPI_Request request;
+    int flag = 1;
     packet_t pakiet;
     while (true)
     {
-        println("Waiting for mesage");
+        // println("Waiting for mesage");
         if (providedMode == MPI_THREAD_SERIALIZED)
         {
-            pthread_mutex_lock(&mpiMut);
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            pthread_mutex_unlock(&mpiMut);
+            if (flag != 0)
+            {
+                pthread_mutex_lock(&mpiMut);
+                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                pthread_mutex_unlock(&mpiMut);
+                flag = 0;
+            }
+            MPI_Test(&request, &flag, &status);
         }
         else
         {
             MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        }
+
+        if (flag == 0)
+        {
+            continue;
         }
 
         switch (status.MPI_TAG)
@@ -24,7 +36,7 @@ void observatoryKom()
         default:
             updateClock(pakiet.ts);
             incrementClock();
-            println("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
+            println("Received message %s from %d", tag2string(status.MPI_TAG), status.MPI_SOURCE);
             break;
         }
     }
@@ -95,11 +107,13 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
         {
             // Process has lower priority
             if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank > status.MPI_SOURCE))
+                (queueClock == pakiet.ts && rank <= status.MPI_SOURCE))
             {
                 pairACK(status.MPI_SOURCE);
             }
         }
+
+        tryToPair();
 
         break;
     }
@@ -245,7 +259,7 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         {
             // Process has lower priority
             if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank > status.MPI_SOURCE))
+                (queueClock == pakiet.ts && rank <= status.MPI_SOURCE))
             {
                 asteroidACK(status.MPI_SOURCE);
             }
@@ -288,23 +302,35 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
 void telepathKom()
 {
     MPI_Status status;
+    MPI_Request request;
+    int flag = 1;
     packet_t pakiet;
     while (true)
     {
         // println("Waiting for message");
         if (providedMode == MPI_THREAD_SERIALIZED)
         {
-            pthread_mutex_lock(&mpiMut);
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            pthread_mutex_unlock(&mpiMut);
+            if (flag != 0)
+            {
+                pthread_mutex_lock(&mpiMut);
+                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                pthread_mutex_unlock(&mpiMut);
+                flag = 0;
+            }
+            MPI_Test(&request, &flag, &status);
         }
         else
         {
             MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         }
 
-        state_t currentState = getState();
-        debug("Received message in state %d with tag %s from %d", currentState, status.MPI_TAG, status.MPI_SOURCE);
+        if (flag == 0)
+        {
+            continue;
+        }
+
+        int currentState = getState();
+        debug("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
 
         updateClock(pakiet.ts);
         incrementClock();

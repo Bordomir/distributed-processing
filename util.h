@@ -33,6 +33,7 @@ typedef struct
 #define ASTEROID_FOUND 8 // wiadomość od obserwatorium o nowych asteroidach
 
 extern MPI_Datatype MPI_PAKIET_T;
+const char *tag2string(int tag);
 void inicjuj_typ_pakietu();
 
 /* wysyłanie pakietu, skrót: wskaźnik do pakietu (0 oznacza stwórz pusty pakiet), do kogo, z jakim typem */

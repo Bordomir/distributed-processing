@@ -3,11 +3,11 @@
 #include "watek_komunikacyjny.h"
 
 int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair, providedMode;
-std::priority_queue<std::pair<int, int>> pairQueue;
+std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 std::vector<bool> isPairAckReceived;
 std::vector<bool> isAsteroidAckReceived;
 // state_t stan=InRun;
-state_t stan = REST;
+int stan = REST;
 pthread_t threadKom, threadMon;
 pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER, clockMut = PTHREAD_MUTEX_INITIALIZER, mpiMut = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
