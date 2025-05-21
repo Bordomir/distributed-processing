@@ -16,7 +16,7 @@ struct tagNames_t
     {"ASTEROID_ACK", ASTEROID_ACK},
     {"ASTEROID_FOUND", ASTEROID_FOUND}};
 
-const char const *tag2string(int tag)
+const char *tag2string(int tag)
 {
     for (int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
     {
@@ -157,7 +157,7 @@ void enterPairQueue()
     queueClock = currentClock;
 
     sendAllTelepaths(pkt, PAIR_REQ);
-    println("Sent messages PAIR_REQ to all telepaths");
+    // println("Sent messages PAIR_REQ to all telepaths");
 }
 
 void pairACK(int destination)
@@ -166,7 +166,7 @@ void pairACK(int destination)
     pkt->ts = lamportClock;
 
     sendPacket(pkt, destination, PAIR_ACK);
-    println("Sent PAIR_ACK to %d", destination);
+    // println("Sent PAIR_ACK to %d", destination);
 }
 
 void incrementPairACK(int process)
@@ -189,12 +189,12 @@ void tryToPair()
         pkt->ts = lamportClock;
 
         sendPacket(pkt, topQueue, PAIR_PROPOSAL);
-        println("Sent PAIR_PROPOSAL to %d", topQueue);
+        // println("Sent PAIR_PROPOSAL to %d", topQueue);
 
         pair = topQueue;
 
         sendAllTelepaths(pkt, PAIR_RELEASE);
-        println("Sent messages PAIR_RELEASE to all telepaths");
+        // println("Sent messages PAIR_RELEASE to all telepaths");
 
         changeState(PAIRED);
     }
@@ -202,7 +202,7 @@ void tryToPair()
 
 void exitPairQueue()
 {
-    println("Exiting the pair queue after finding pair");
+    // println("Exiting the pair queue after finding pair");
 
     queueClock = -1;
 
@@ -210,7 +210,7 @@ void exitPairQueue()
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, PAIR_RELEASE);
-    println("Sent messages PAIR_RELEASE to all telepaths");
+    // println("Sent messages PAIR_RELEASE to all telepaths");
 }
 
 void enterAsteroidQueue()
@@ -229,7 +229,7 @@ void enterAsteroidQueue()
     queueClock = currentClock;
 
     sendAllTelepaths(pkt, ASTEROID_REQ);
-    println("Sent messages ASTEROID_REQ to all telepaths");
+    // println("Sent messages ASTEROID_REQ to all telepaths");
 }
 
 void asteroidACK(int destination)
@@ -237,7 +237,7 @@ void asteroidACK(int destination)
     packet_t *pkt;
     pkt->ts = lamportClock;
     sendPacket(pkt, destination, ASTEROID_ACK);
-    println("Sent ASTEROID_ACK to %d", destination);
+    // println("Sent ASTEROID_ACK to %d", destination);
 }
 
 void incrementAsteroidACK(int process)
@@ -261,7 +261,7 @@ void tryToDestroyAsteroid()
         pair = -1;
 
         sendAllTelepaths(pkt, ASTEROID_RELEASE);
-        println("Sent messages ASTEROID_RELEASE to all telepaths");
+        // println("Sent messages ASTEROID_RELEASE to all telepaths");
 
         changeState(REST);
     }
@@ -269,7 +269,7 @@ void tryToDestroyAsteroid()
 
 void exitAsteroidQueue()
 {
-    println("Exiting the asteroid queue after destroying asteroid");
+    // println("Exiting the asteroid queue after destroying asteroid");
 
     queueClock = -1;
 
@@ -277,5 +277,5 @@ void exitAsteroidQueue()
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, ASTEROID_RELEASE);
-    println("Sent messages ASTEROID_RELEASE to all telepaths");
+    // println("Sent messages ASTEROID_RELEASE to all telepaths");
 }

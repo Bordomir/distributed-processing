@@ -26,34 +26,46 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     switch (status.MPI_TAG)
     {
     case PAIR_REQ:
+    {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
 
         break;
+    }
     case PAIR_RELEASE:
+    {
         pairQueue.pop();
         pairQueue.pop();
-        println("Removed 2 processes from the pair queue");
+        // println("Removed 2 processes from the pair queue");
 
         break;
+    }
     case ASTEROID_REQ:
+    {
         asteroidACK(status.MPI_SOURCE);
 
         break;
+    }
     case ASTEROID_RELEASE:
+    {
         asteroidCount--;
-        println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
+        // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
+    }
     case ASTEROID_FOUND:
+    {
         asteroidCount += pakiet.data;
-        println("Observatory found %d new asteroids", pakiet.data);
+        // println("Observatory found %d new asteroids", pakiet.data);
 
         break;
+    }
     default:
+    {
         debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
         break;
+    }
     }
 }
 
@@ -62,6 +74,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     switch (status.MPI_TAG)
     {
     case PAIR_REQ:
+    {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         // Process is not in queue yet
@@ -80,7 +93,9 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
         }
 
         break;
+    }
     case PAIR_RELEASE:
+    {
         int process = pairQueue.top().second;
         pairQueue.pop();
         incrementPairACK(process);
@@ -88,18 +103,22 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
         process = pairQueue.top().second;
         pairQueue.pop();
         incrementPairACK(process);
-        println("Removed 2 processes from the pair queue");
+        // println("Removed 2 processes from the pair queue");
 
         tryToPair();
 
         break;
+    }
     case PAIR_ACK:
+    {
         incrementPairACK(status.MPI_SOURCE);
 
         tryToPair();
 
         break;
+    }
     case PAIR_PROPOSAL:
+    {
         println("Found a pair");
 
         pair = status.MPI_SOURCE;
@@ -107,20 +126,27 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
         changeState(WAIT_ASTEROID);
 
         break;
+    }
     case ASTEROID_REQ:
+    {
         asteroidACK(status.MPI_SOURCE);
 
         break;
+    }
     case ASTEROID_RELEASE:
+    {
         asteroidCount--;
-        println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
+        // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
+    }
     case ASTEROID_FOUND:
+    {
         asteroidCount += pakiet.data;
-        println("Observatory found %d new asteroids", pakiet.data);
+        // println("Observatory found %d new asteroids", pakiet.data);
 
         break;
+    }
     default:
         debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
         break;
@@ -132,24 +158,31 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     switch (status.MPI_TAG)
     {
     case PAIR_REQ:
+    {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
 
         break;
+    }
     case PAIR_RELEASE:
+    {
         pairQueue.pop();
         pairQueue.pop();
-        println("Removed 2 processes from the pair queue");
+        // println("Removed 2 processes from the pair queue");
 
         break;
+    }
     case ASTEROID_REQ:
+    {
         asteroidACK(status.MPI_SOURCE);
 
         break;
+    }
     case ASTEROID_RELEASE:
+    {
         asteroidCount--;
-        println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
+        // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         if (pair == status.MPI_SOURCE)
         {
@@ -158,11 +191,14 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
         }
 
         break;
+    }
     case ASTEROID_FOUND:
+    {
         asteroidCount += pakiet.data;
-        println("Observatory found %d new asteroids", pakiet.data);
+        // println("Observatory found %d new asteroids", pakiet.data);
 
         break;
+    }
     default:
         debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
         break;
@@ -174,18 +210,23 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     switch (status.MPI_TAG)
     {
     case PAIR_REQ:
+    {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
 
         break;
+    }
     case PAIR_RELEASE:
+    {
         pairQueue.pop();
         pairQueue.pop();
-        println("Removed 2 processes from the pair queue");
+        // println("Removed 2 processes from the pair queue");
 
         break;
+    }
     case ASTEROID_REQ:
+    {
         // Process is not in queue yet
         if (queueClock == -1)
         {
@@ -202,26 +243,33 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         }
 
         break;
+    }
     case ASTEROID_RELEASE:
+    {
         asteroidCount--;
-        println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
-        
+        // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
+
         incrementAsteroidACK(status.MPI_SOURCE);
 
         break;
+    }
     case ASTEROID_ACK:
+    {
         incrementAsteroidACK(status.MPI_SOURCE);
 
         tryToDestroyAsteroid();
 
         break;
+    }
     case ASTEROID_FOUND:
+    {
         asteroidCount += pakiet.data;
-        println("Observatory found %d new asteroids", pakiet.data);
+        // println("Observatory found %d new asteroids", pakiet.data);
 
         tryToDestroyAsteroid();
 
         break;
+    }
     default:
         debug("Received message %d from %d", status.MPI_TAG, status.MPI_SOURCE);
         break;
@@ -234,7 +282,7 @@ void telepathKom()
     packet_t pakiet;
     while (true)
     {
-        println("Waiting for message");
+        // println("Waiting for message");
         MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         state_t currentState = getState();

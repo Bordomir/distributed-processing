@@ -41,6 +41,7 @@ void telepath()
         switch (currentState)
         {
         case REST:
+        {
             println("Sleeping") int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
             debug("sleepTime: %d", sleepTime);
             sleep(sleepTime);
@@ -49,22 +50,29 @@ void telepath()
             println("Changed state to WAIT_PAIR");
 
             break;
+        }
         case WAIT_PAIR:
+        {
             enterPairQueue(); // Niezgodne ze sprawozdaniem
 
             waitForStateChange(currentState);
             println("Paired with other telepath");
             break;
+        }
         case PAIRED:
+        {
             waitForStateChange(currentState);
             println("No longer paired with other telepath");
             break;
+        }
         case WAIT_ASTEROID:
+        {
             enterAsteroidQueue();
 
             waitForStateChange(currentState);
             println("No longer paired with other telepath");
             break;
+        }
         default:
             break;
         }
