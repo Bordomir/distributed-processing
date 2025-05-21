@@ -5,28 +5,28 @@ void observatory()
 {
     srandom(rank);
     int tag;
-    while (TRUE)
+    while (true)
     {
         incrementClock();
-        debug("lamportClock: %d", lamportClock)
+        debug("lamportClock: %d", lamportClock);
 
         int percent = randomValue(0, 100);
-        debug("percent: %d", percent)
-        if (percent <= ASTEROID_FOUND_PROB) {
-            println("Found asteroid")
-            int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
-            debug("amount: %d", amount)
+        debug("percent: %d", percent);
+        if (percent <= ASTEROID_FOUND_PROB)
+        {
+            println("Found asteroid") int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
+            debug("amount: %d", amount);
 
             packet_t *pkt;
             pkt->ts = lamportClock;
             pkt->data = amount;
-            
+
             sendAllTelepaths(pkt, ASTEROID_FOUND);
-            println("Sent messages about %d new asteroids", amount)
+            println("Sent messages about %d new asteroids", amount);
         }
         int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        debug("sleepTime: %d", sleepTime)
-        println("Sleeping")
+        debug("sleepTime: %d", sleepTime);
+        println("Sleeping");
         sleep(sleepTime);
     }
 }
@@ -35,39 +35,38 @@ void telepath()
 {
     srandom(rank);
     int tag;
-    while (TRUE)
+    while (true)
     {
         state_t currentState = getState();
         switch (currentState)
         {
-            case REST:
-                println("Sleeping")
-                int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-                debug("sleepTime: %d", sleepTime)
-                sleep(sleepTime);
-                
-                changeState(WAIT_PAIR);
-                println("Changed state to WAIT_PAIR")
-                
-                break;
-            case WAIT_PAIR:
-                enterPairQueue(); // Niezgodne ze sprawozdaniem
+        case REST:
+            println("Sleeping") int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
+            debug("sleepTime: %d", sleepTime);
+            sleep(sleepTime);
 
-                pthread_cond_wait(&cond, &condMut);
-                println("Paired with other telepath")
-                break;
-            case PAIRED:
-                pthread_cond_wait(&cond, &condMut);
-                println("No longer paired with other telepath")
-                break;
-            case WAIT_ASTEROID:
-                enterAsteroidQueue();
-                
-                pthread_cond_wait(&cond, &condMut);
-                println("No longer paired with other telepath")
-                break;
-            default:
-                break;
+            changeState(WAIT_PAIR);
+            println("Changed state to WAIT_PAIR");
+
+            break;
+        case WAIT_PAIR:
+            enterPairQueue(); // Niezgodne ze sprawozdaniem
+
+            waitForStateChange(currentState);
+            println("Paired with other telepath");
+            break;
+        case PAIRED:
+            waitForStateChange(currentState);
+            println("No longer paired with other telepath");
+            break;
+        case WAIT_ASTEROID:
+            enterAsteroidQueue();
+
+            waitForStateChange(currentState);
+            println("No longer paired with other telepath");
+            break;
+        default:
+            break;
         }
     }
 }
@@ -76,38 +75,38 @@ void mainLoop()
 {
     switch (rank)
     {
-        case ROOT:
-            observatory();
-            break;
-        default:
-            telepath();
-            break;
+    case OBSERVATORY:
+        observatory();
+        break;
+    default:
+        telepath();
+        break;
     }
 
-/*
-    srandom(rank);
-    int tag;
+    /*
+        srandom(rank);
+        int tag;
 
-    while (stan != InFinish) {
-        int perc = random()%100; 
+        while (stan != InFinish) {
+            int perc = random()%100;
 
-        if (perc<STATE_CHANGE_PROB) {
-            if (stan==InRun) {
-                debug("Zmieniam stan na wysyłanie");
-                changeState( InSend );
-                packet_t *pkt = malloc(sizeof(packet_t));
-                pkt->data = perc;
-                perc = random()%100;
-                tag = ( perc < 25 ) ? FINISH : APP_PKT;
-                debug("Perc: %d", perc);
-                
-                sendPacket( pkt, (rank+1)%size, tag);
-                changeState( InRun );
-                debug("Skończyłem wysyłać");
-            } else {
+            if (perc<STATE_CHANGE_PROB) {
+                if (stan==InRun) {
+                    debug("Zmieniam stan na wysyłanie");
+                    changeState( InSend );
+                    packet_t *pkt = malloc(sizeof(packet_t));
+                    pkt->data = perc;
+                    perc = random()%100;
+                    tag = ( perc < 25 ) ? FINISH : APP_PKT;
+                    debug("Perc: %d", perc);
+
+                    sendPacket( pkt, (rank+1)%size, tag);
+                    changeState( InRun );
+                    debug("Skończyłem wysyłać");
+                } else {
+                }
             }
+            sleep(SEC_IN_STATE);
         }
-        sleep(SEC_IN_STATE);
-    }
-*/
+    */
 }

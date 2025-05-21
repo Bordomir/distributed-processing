@@ -2,29 +2,31 @@
 #include "util.h"
 MPI_Datatype MPI_PAKIET_T;
 
-struct tagNames_t{
+struct tagNames_t
+{
     const char *name;
     int tag;
-} tagNames[] = { 
-    { "PAIR_REQ", PAIR_REQ },
-    { "PAIR_RELEASE", PAIR_RELEASE },
-    { "PAIR_ACK", PAIR_ACK },
-    { "PAIR_PROPOSAL", PAIR_PROPOSAL },
-    { "ASTEROID_REQ", ASTEROID_REQ },
-    { "ASTEROID_RELEASE", ASTEROID_RELEASE },
-    { "ASTEROID_ACK", ASTEROID_ACK },
-    { "ASTEROID_FOUND", ASTEROID_FOUND }
-};
+} tagNames[] = {
+    {"PAIR_REQ", PAIR_REQ},
+    {"PAIR_RELEASE", PAIR_RELEASE},
+    {"PAIR_ACK", PAIR_ACK},
+    {"PAIR_PROPOSAL", PAIR_PROPOSAL},
+    {"ASTEROID_REQ", ASTEROID_REQ},
+    {"ASTEROID_RELEASE", ASTEROID_RELEASE},
+    {"ASTEROID_ACK", ASTEROID_ACK},
+    {"ASTEROID_FOUND", ASTEROID_FOUND}};
 
-const char const *tag2string( int tag )
+const char const *tag2string(int tag)
 {
-    for (int i=0; i <sizeof(tagNames)/sizeof(struct tagNames_t);i++) {
-	if ( tagNames[i].tag == tag )  return tagNames[i].name;
+    for (int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
+    {
+        if (tagNames[i].tag == tag)
+            return tagNames[i].name;
     }
     return "<unknown>";
 }
 /* tworzy typ MPI_PAKIET_T
-*/
+ */
 void inicjuj_typ_pakietu()
 {
     /* Stworzenie typu */
@@ -32,16 +34,17 @@ void inicjuj_typ_pakietu()
        brzydzimy się czymś w rodzaju MPI_Send(&typ, sizeof(pakiet_t), MPI_BYTE....
     */
     /* sklejone z stackoverflow */
-    int       blocklengths[NITEMS] = {1,1,1};
-    // int blocklengths[NITEMS] = {1,1};
-    MPI_Datatype typy[NITEMS] = {MPI_INT, MPI_INT, MPI_INT};
-    // MPI_Datatype typy[NITEMS] = {MPI_INT, MPI_INT};
+    // int blocklengths[NITEMS] = {1, 1, 1};
+    int blocklengths[NITEMS] = {1, 1};
+    // MPI_Datatype typy[NITEMS] = {MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype typy[NITEMS] = {MPI_INT, MPI_INT};
 
-    MPI_Aint     offsets[NITEMS]; 
-    // offsets[0] = offsetof(packet_t, data);
+    MPI_Aint offsets[NITEMS];
+    // offsets[0] = offsetof(packet_t, ts);
+    // offsets[1] = offsetof(packet_t, src);
+    // offsets[2] = offsetof(packet_t, data);
     offsets[0] = offsetof(packet_t, ts);
-    offsets[1] = offsetof(packet_t, src);
-    offsets[2] = offsetof(packet_t, data);
+    offsets[1] = offsetof(packet_t, data);
 
     MPI_Type_create_struct(NITEMS, blocklengths, offsets, typy, &MPI_PAKIET_T);
 
@@ -51,82 +54,101 @@ void inicjuj_typ_pakietu()
 /* opis patrz util.h */
 void sendPacket(packet_t *pkt, int destination, int tag)
 {
-    int freepkt=0;
-    if (pkt==0) { pkt = new packet_t; freepkt=1;}
-    pkt->src = rank;
-    MPI_Send( pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+    int freepkt = 0;
+    if (pkt == 0)
+    {
+        pkt = new packet_t;
+        freepkt = 1;
+    }
+    // pkt->src = rank;
+    MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
     debug("Wysyłam %s do %d\n", tag2string(tag), destination);
-    if (freepkt) delete pkt;
+    if (freepkt)
+        delete pkt;
 }
 
 int randomValue(int min, int max)
 {
     int diff = max - min;
-    int rand = random()%diff;
-    return rand+min;
+    int rand = random() % diff;
+    return rand + min;
 }
-
 
 state_t getState()
 {
     state_t returnState;
-    pthread_mutex_lock( &stateMut );
+    pthread_mutex_lock(&stateMut);
     returnState = stan;
-    pthread_mutex_unlock( &stateMut );
+    pthread_mutex_unlock(&stateMut);
     return returnState;
 }
 
-void changeState( state_t newState )
+void changeState(state_t newState)
 {
-    pthread_mutex_lock( &stateMut );
-    if (stan==InFinish) { 
-	pthread_mutex_unlock( &stateMut );
+    pthread_mutex_lock(&stateMut);
+    // if (stan==InFinish) {
+    // pthread_mutex_unlock( &stateMut );
+    //     return;
+    // }
+    stan = newState;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&stateMut);
+}
+
+void waitForStateChange(state_t currentState)
+{
+    pthread_mutex_lock(&stateMut);
+    if (currentState != stan)
+    {
+        pthread_mutex_unlock(&stateMut);
         return;
     }
-    stan = newState;
-    pthread_mutex_unlock( &stateMut );
+    pthread_cond_wait(&cond, &stateMut);
+    pthread_mutex_unlock(&stateMut);
 }
 
 void incrementClock()
 {
-    pthread_mutex_lock( &clockMut );
+    pthread_mutex_lock(&clockMut);
     lamportClock++;
-    pthread_mutex_unlock( &clockMut );
+    pthread_mutex_unlock(&clockMut);
 }
 
-void changeClock( int newClock )
+void changeClock(int newClock)
 {
-    pthread_mutex_lock( &clockMut );
+    pthread_mutex_lock(&clockMut);
     lamportClock = newClock;
-    pthread_mutex_unlock( &clockMut );
+    pthread_mutex_unlock(&clockMut);
 }
 
-void updateClock( int newClock )
+void updateClock(int newClock)
 {
-    pthread_mutex_lock( &clockMut );
-    if( lamportClock > newClock )
+    pthread_mutex_lock(&clockMut);
+    if (lamportClock > newClock)
     {
-        pthread_mutex_unlock( &clockMut );
+        pthread_mutex_unlock(&clockMut);
         return;
     }
     lamportClock = newClock;
-    pthread_mutex_unlock( &clockMut );
+    pthread_mutex_unlock(&clockMut);
 }
 
 void sendAllTelepaths(packet_t *pkt, int tag)
 {
-    for(int i = 1; i < size; i++){
+    for (int i = 1; i < size; i++)
+    {
         sendPacket(pkt, i, tag);
     }
 }
 
 void enterPairQueue()
 {
-    println("Entering the pair queue to pair with another telepath")
+    println("Entering the pair queue to pair with another telepath");
 
     incrementClock();
-    debug("lamportClock: %d", lamportClock)
+    debug("lamportClock: %d", lamportClock);
 
+    std::fill(isPairAckReceived.begin(), isPairAckReceived.end(), false);
     pairAckCount = 0;
 
     int currentClock = lamportClock;
@@ -135,27 +157,52 @@ void enterPairQueue()
     queueClock = currentClock;
 
     sendAllTelepaths(pkt, PAIR_REQ);
-    println("Sent messages PAIR_REQ to all telepaths")
+    println("Sent messages PAIR_REQ to all telepaths");
 }
 
 void pairACK(int destination)
 {
-    incrementClock();
-    debug("lamportClock: %d", lamportClock)
-
     packet_t *pkt;
     pkt->ts = lamportClock;
 
     sendPacket(pkt, destination, PAIR_ACK);
-    println("Sent PAIR_ACK to %d", destination)
+    println("Sent PAIR_ACK to %d", destination);
+}
+
+void incrementPairACK(int process)
+{
+    if (!isPairAckReceived[process])
+    {
+        isPairAckReceived[process] = true;
+        pairAckCount++;
+    }
+}
+
+void tryToPair()
+{
+    int topQueue = pairQueue.top().second;
+    if (pairAckCount >= size - 2 &&
+        topQueue != rank)
+    {
+        println("Found a pair");
+        packet_t *pkt;
+        pkt->ts = lamportClock;
+
+        sendPacket(pkt, topQueue, PAIR_PROPOSAL);
+        println("Sent PAIR_PROPOSAL to %d", topQueue);
+
+        pair = topQueue;
+
+        sendAllTelepaths(pkt, PAIR_RELEASE);
+        println("Sent messages PAIR_RELEASE to all telepaths");
+
+        changeState(PAIRED);
+    }
 }
 
 void exitPairQueue()
 {
-    println("Exiting the pair queue after finding pair")
-
-    incrementClock();
-    debug("lamportClock: %d", lamportClock)
+    println("Exiting the pair queue after finding pair");
 
     queueClock = -1;
 
@@ -163,16 +210,17 @@ void exitPairQueue()
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, PAIR_RELEASE);
-    println("Sent messages PAIR_RELEASE to all telepaths")
+    println("Sent messages PAIR_RELEASE to all telepaths");
 }
 
 void enterAsteroidQueue()
 {
-    println("Entering the asteroid queue to destroy asteroid")
+    println("Entering the asteroid queue to destroy asteroid");
 
     incrementClock();
-    debug("lamportClock: %d", lamportClock)
+    debug("lamportClock: %d", lamportClock);
 
+    std::fill(isAsteroidAckReceived.begin(), isAsteroidAckReceived.end(), false);
     asteroidAckCount = 0;
 
     int currentClock = lamportClock;
@@ -181,26 +229,47 @@ void enterAsteroidQueue()
     queueClock = currentClock;
 
     sendAllTelepaths(pkt, ASTEROID_REQ);
-    println("Sent messages ASTEROID_REQ to all telepaths")
+    println("Sent messages ASTEROID_REQ to all telepaths");
 }
 
 void asteroidACK(int destination)
 {
-    incrementClock();
-    debug("lamportClock: %d", lamportClock)
-
     packet_t *pkt;
     pkt->ts = lamportClock;
     sendPacket(pkt, destination, ASTEROID_ACK);
-    println("Sent ASTEROID_ACK to %d", destination)
+    println("Sent ASTEROID_ACK to %d", destination);
+}
+
+void incrementAsteroidACK(int process)
+{
+    if (!isAsteroidAckReceived[process])
+    {
+        isAsteroidAckReceived[process] = true;
+        asteroidAckCount++;
+    }
+}
+
+void tryToDestroyAsteroid()
+{
+    if (asteroidAckCount >= size - asteroidCount)
+    {
+        println("Received right to destroy asteroid");
+
+        packet_t *pkt;
+        pkt->ts = lamportClock;
+
+        pair = -1;
+
+        sendAllTelepaths(pkt, ASTEROID_RELEASE);
+        println("Sent messages ASTEROID_RELEASE to all telepaths");
+
+        changeState(REST);
+    }
 }
 
 void exitAsteroidQueue()
 {
-    println("Exiting the asteroid queue after destroying asteroid")
-
-    incrementClock();
-    debug("lamportClock: %d", lamportClock)
+    println("Exiting the asteroid queue after destroying asteroid");
 
     queueClock = -1;
 
@@ -208,6 +277,5 @@ void exitAsteroidQueue()
     pkt->ts = lamportClock;
 
     sendAllTelepaths(pkt, ASTEROID_RELEASE);
-    println("Sent messages ASTEROID_RELEASE to all telepaths")
+    println("Sent messages ASTEROID_RELEASE to all telepaths");
 }
-
