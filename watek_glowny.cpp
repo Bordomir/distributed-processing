@@ -3,7 +3,6 @@
 
 void observatory()
 {
-    srandom(rank);
     int tag;
     while (true)
     {
@@ -33,7 +32,6 @@ void observatory()
 
 void telepath()
 {
-    srandom(rank);
     int tag;
     while (true)
     {

@@ -256,7 +256,7 @@ void tryToSendPairProposal()
         return;
     }
     int topQueue = pairQueue.top().second;
-    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]))
+    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pair == -1))
     {
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
@@ -269,10 +269,6 @@ void tryToSendPairProposal()
         println("Sent PAIR_PROPOSAL to %d", topQueue);
 
         pair = topQueue;
-
-        queueClock = -1;
-
-        changeState(PAIRED);
     }
 }
 

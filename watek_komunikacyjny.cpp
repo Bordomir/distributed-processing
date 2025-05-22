@@ -134,6 +134,12 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
 
         tryToPair();
 
+        if(pair == status.MPI_SOURCE)
+        {
+            queueClock = -1;
+            changeState(PAIRED);
+        }
+
         break;
     }
     case PAIR_ACK:
