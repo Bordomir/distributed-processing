@@ -51,26 +51,14 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
         
         pairACK(status.MPI_SOURCE);
-        
-        if(pairsCreated.count(status.MPI_SOURCE)){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-            pairsCreated.erase(status.MPI_SOURCE);
-        }
 
         break;
     }
     case PAIR_RELEASE:
     {
-        int topQueue = pairQueue.top().second;
-        if(topQueue == pakiet.data){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-        }else{
-            pairsCreated.insert(pakiet.data);
-        }
+        pairQueue.pop();
+        pairQueue.pop();
+        // println("Removed 2 processes from the pair queue");
 
         break;
     }
@@ -119,18 +107,13 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
         {
             // Process has lower priority
             if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank <= status.MPI_SOURCE))
+                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
             {
                 pairACK(status.MPI_SOURCE);
             }
         }
-        
-        if(pairsCreated.count(status.MPI_SOURCE)){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-            pairsCreated.erase(status.MPI_SOURCE);
-        }
+
+        tryToSendPairProposal();
 
         tryToPair();
 
@@ -138,19 +121,16 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_RELEASE:
     {
-        int topQueue = pairQueue.top().second;
-        if(topQueue == pakiet.data){
-            int process = pairQueue.top().second;
-            pairQueue.pop();
-            incrementPairACK(process);
+        int process = pairQueue.top().second;
+        pairQueue.pop();
+        incrementPairACK(process);
 
-            process = pairQueue.top().second;
-            pairQueue.pop();
-            incrementPairACK(process);
-            // println("Removed 2 processes from the pair queue");
-        }else{
-            pairsCreated.insert(pakiet.data);
-        }
+        process = pairQueue.top().second;
+        pairQueue.pop();
+        incrementPairACK(process);
+        // println("Removed 2 processes from the pair queue");
+
+        tryToSendPairProposal();
 
         tryToPair();
 
@@ -160,17 +140,21 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     {
         incrementPairACK(status.MPI_SOURCE);
 
+        tryToSendPairProposal();
+
         tryToPair();
 
         break;
     }
     case PAIR_PROPOSAL:
     {
-        println("Found a pair");
 
-        pair = status.MPI_SOURCE;
+        if(pair == -1)
+        {
+            pair = status.MPI_SOURCE;
+        }
 
-        changeState(WAIT_ASTEROID);
+        tryToPair();
 
         break;
     }
@@ -210,25 +194,13 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
 
         pairACK(status.MPI_SOURCE);
         
-        if(pairsCreated.count(status.MPI_SOURCE)){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-            pairsCreated.erase(status.MPI_SOURCE);
-        }
-
         break;
     }
     case PAIR_RELEASE:
     {
-        int topQueue = pairQueue.top().second;
-        if(topQueue == pakiet.data){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-        }else{
-            pairsCreated.insert(pakiet.data);
-        }
+        pairQueue.pop();
+        pairQueue.pop();
+        // println("Removed 2 processes from the pair queue");
 
         break;
     }
@@ -273,31 +245,21 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
-        
-        if(pairsCreated.count(status.MPI_SOURCE)){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-            pairsCreated.erase(status.MPI_SOURCE);
-        }
 
         break;
     }
     case PAIR_RELEASE:
     {
-        int topQueue = pairQueue.top().second;
-        if(topQueue == pakiet.data){
-            pairQueue.pop();
-            pairQueue.pop();
-            // println("Removed 2 processes from the pair queue");
-        }else{
-            pairsCreated.insert(pakiet.data);
-        }
+        pairQueue.pop();
+        pairQueue.pop();
+        // println("Removed 2 processes from the pair queue");
 
         break;
     }
     case ASTEROID_REQ:
     {
+
+        
         // Process is not in queue yet
         if (queueClock == -1)
         {
@@ -307,7 +269,7 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         {
             // Process has lower priority
             if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank <= status.MPI_SOURCE))
+                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
             {
                 asteroidACK(status.MPI_SOURCE);
             }

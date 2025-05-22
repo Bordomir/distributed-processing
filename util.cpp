@@ -2,6 +2,39 @@
 #include "util.h"
 MPI_Datatype MPI_PAKIET_T;
 
+std::string printVector(std::vector<bool> vec)
+{
+    std::string result = "[";
+    for (bool i: vec)
+    {
+        if(i){
+            result += '1';
+        } else 
+        {
+            result += '0';
+        }
+    }
+    result += ']';
+    return result;
+}
+
+std::string printVector(std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> q)
+{
+    std::string result = "[";
+    while (! q.empty() ) {
+        result += '(';
+        result += std::to_string(q.top().first);
+        result += ':';
+        result += std::to_string(q.top().second);
+        result += ')';
+        result += ',';
+        q.pop();
+    }
+    result += ']';
+    return result;
+}
+
+
 struct tagNames_t
 {
     const char *name;
@@ -58,7 +91,6 @@ void inicjuj_typ_pakietu()
 /* opis patrz util.h */
 void sendPacket(packet_t *pkt, int destination, int tag)
 {
-    debug("Początek wysyłania");
     int freepkt = 0;
     if (pkt == 0)
     {
@@ -82,7 +114,6 @@ void sendPacket(packet_t *pkt, int destination, int tag)
     {
         delete pkt;
     }
-    debug("Koniec wysyłania");
 }
 
 int randomValue(int min, int max)
@@ -111,6 +142,7 @@ void changeState(int newState)
     stan = newState;
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&stateMut);
+    println("Changed state to %s", tag2string(newState));
 }
 
 void waitForStateChange(int currentState)
@@ -184,7 +216,6 @@ void pairACK(int destination)
     pkt.ts = lamportClock;
 
     sendPacket(&pkt, destination, PAIR_ACK);
-    // println("Sent PAIR_ACK to %d", destination);
 }
 
 void incrementPairACK(int process)
@@ -197,33 +228,39 @@ void incrementPairACK(int process)
     debug("ack: %d", pairAckCount);
 }
 
-void tryToPair()
+void tryToSendPairProposal()
 {
-    // tworzą się nieświadome trójki
-    // przez to że kolejki nie są identyczne i mogą pop robić na innych elementach niż powinno bo REQ są za wolne
-//  [4] [t14]: Found a pair
-//  [4] [t14]: Sent PAIR_PROPOSAL to 6
-//  [4] [t14]: Sent messages PAIR_RELEASE to all telepaths
-//  [4] [t15]: Paired with other telepath
-//  [6] [t13]: Found a pair
-//  [6] [t13]: Sent PAIR_PROPOSAL to 2
-//  [6] [t13]: Sent messages PAIR_RELEASE to all telepaths
-//  [6] [t16]: Paired with other telepath
+//  [4] [t420]: Changed state to WAIT_PAIR
+//  [4] [t420]: Entering the pair queue to pair with another telepath
+//  [4] [t421]: Sent messages PAIR_REQ to all telepaths
+//  [4] [t428]: Found a pair
+//  [4] [t428]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:4; queueClock:421; isPairAckReceived:[01011111]
+//  [4] [t428]:    pairQueue:[(419:2),(421:4),]
+//  [4] [t428]: Sent PAIR_PROPOSAL to 2
+//  [4] [t428]: Paired with other telepath
+//  [4] [t428]: Changed state to PAIRED
+//  [7] [t422]: Changed state to WAIT_PAIR
+//  [7] [t422]: Entering the pair queue to pair with another telepath
+//  [7] [t423]: Sent messages PAIR_REQ to all telepaths
+//  [2] [t429]: Found a pair
+//  [7] [t431]: Found a pair
+//  [7] [t431]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:7; queueClock:423; isPairAckReceived:[01011111]
+//  [7] [t431]:    pairQueue:[(419:2),(421:4),(423:7),]
+//  [7] [t431]: Sent PAIR_PROPOSAL to 2
+//  [7] [t431]: Paired with other telepath
+//  [7] [t431]: Changed state to PAIRED
 
-    debug("Początek próby parowania");
-    
-    println()
     if (pairQueue.empty())
     {
         println("Pair queue is empty");
-        debug("Koniec próby parowania");
         return;
     }
     int topQueue = pairQueue.top().second;
-    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pairsCreated.empty()))
+    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]))
     {
         println("Found a pair");
-        println("pair:%d; ts:%d",topQueue, pairQueue.top().first);
+        println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
+        println("\tpairQueue:%s",printVector(pairQueue).c_str());
 
         packet_t pkt;
         pkt.ts = lamportClock;
@@ -233,14 +270,31 @@ void tryToPair()
 
         pair = topQueue;
 
-        pkt.data = pair;
-
-        sendAllTelepaths(&pkt, PAIR_RELEASE);
-        println("Sent messages PAIR_RELEASE to all telepaths");
+        queueClock = -1;
 
         changeState(PAIRED);
     }
-    debug("Koniec próby parowania");
+}
+
+void tryToPair()
+{
+
+    if (pairQueue.empty())
+    {
+        println("Pair queue is empty");
+        return;
+    }
+    int topQueue = pairQueue.top().second;
+    if ((pairAckCount == size - 1) && (topQueue == rank) && (pair != -1))
+    {
+        println("Found a pair");
+        println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
+        println("\tpairQueue:%s",printVector(pairQueue).c_str());
+
+        exitPairQueue();
+
+        changeState(WAIT_ASTEROID);
+    }
 }
 
 void exitPairQueue()
@@ -281,7 +335,6 @@ void asteroidACK(int destination)
     packet_t pkt;
     pkt.ts = lamportClock;
     sendPacket(&pkt, destination, ASTEROID_ACK);
-    // println("Sent ASTEROID_ACK to %d", destination);
 }
 
 void incrementAsteroidACK(int process)
@@ -296,23 +349,16 @@ void incrementAsteroidACK(int process)
 
 void tryToDestroyAsteroid()
 {
-    debug("Początek próby niszczenia asteroidy");
-    debug("asteroidAckCount: %d; size:%d; asteroidCount:%d", asteroidAckCount, size, asteroidCount);
     if (asteroidAckCount >= size - asteroidCount)
     {
         println("Received right to destroy asteroid");
 
-        packet_t pkt;
-        pkt.ts = lamportClock;
-
         pair = -1;
 
-        sendAllTelepaths(&pkt, ASTEROID_RELEASE);
-        println("Sent messages ASTEROID_RELEASE to all telepaths");
+        exitAsteroidQueue();
 
         changeState(REST);
     }
-    debug("Koniec próby niszczenia asteroidy");
 }
 
 void exitAsteroidQueue()

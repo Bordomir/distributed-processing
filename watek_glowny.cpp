@@ -47,7 +47,6 @@ void telepath()
             sleep(sleepTime);
 
             changeState(WAIT_PAIR);
-            println("Changed state to WAIT_PAIR");
 
             break;
         }

@@ -50,7 +50,6 @@ extern int asteroidAckCount;
 extern std::vector<bool> isAsteroidAckReceived;
 extern int asteroidCount;
 extern int pair;
-extern std::set<int> pairsCreated;
 
 extern int providedMode;
 // typedef enum
@@ -110,6 +109,7 @@ void sendAllTelepaths(packet_t *, int);
 void enterPairQueue();
 void pairACK(int);
 void incrementPairACK(int);
+void tryToSendPairProposal();
 void tryToPair();
 void exitPairQueue();
 
