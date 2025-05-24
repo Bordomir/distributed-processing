@@ -24,8 +24,7 @@ void observatory()
             println("Sent messages about %d new asteroids", amount);
         }
         int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        debug("sleepTime: %d", sleepTime);
-        println("Sleeping");
+        println("Sleeping for next %ds", sleepTime);
         sleep(sleepTime);
     }
 }
@@ -53,13 +52,11 @@ void telepath()
             enterPairQueue(); // Niezgodne ze sprawozdaniem
 
             waitForStateChange(currentState);
-            println("Paired with other telepath");
             break;
         }
         case PAIRED:
         {
             waitForStateChange(currentState);
-            println("No longer paired with other telepath");
             break;
         }
         case WAIT_ASTEROID:
@@ -67,7 +64,6 @@ void telepath()
             enterAsteroidQueue();
 
             waitForStateChange(currentState);
-            println("No longer paired with other telepath");
             break;
         }
         default:

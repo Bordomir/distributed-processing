@@ -140,9 +140,10 @@ void changeState(int newState)
     //     return;
     // }
     stan = newState;
+    println("Changed state to %s", tag2string(newState));
+    incrementClock();
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&stateMut);
-    println("Changed state to %s", tag2string(newState));
 }
 
 void waitForStateChange(int currentState)
@@ -253,7 +254,7 @@ void tryToSendPairProposal()
 
     if (pairQueue.empty())
     {
-        println("Pair queue is empty");
+        debug("Pair queue is empty");
         return;
     }
     int topQueue = pairQueue.top().second;
@@ -280,7 +281,7 @@ void tryToPair()
 
     if (pairQueue.empty())
     {
-        println("Pair queue is empty");
+        debug("Pair queue is empty");
         return;
     }
     int topQueue = pairQueue.top().second;
@@ -355,8 +356,12 @@ void tryToDestroyAsteroid()
     if (asteroidAckCount >= size - asteroidCount)
     {
         println("Received right to destroy asteroid");
+        incrementClock();
 
+        println("BOOOM, asteroid shattered!");
         pair = -1;
+
+        incrementClock();
 
         exitAsteroidQueue();
 
