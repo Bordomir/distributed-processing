@@ -212,6 +212,7 @@ void enterPairQueue()
 
 void pairACK(int destination)
 {
+    incrementClock();
     packet_t pkt;
     pkt.ts = lamportClock;
 
@@ -258,6 +259,8 @@ void tryToSendPairProposal()
     int topQueue = pairQueue.top().second;
     if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pair == -1))
     {
+        incrementClock();
+
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
         println("\tpairQueue:%s",printVector(pairQueue).c_str());
@@ -283,6 +286,8 @@ void tryToPair()
     int topQueue = pairQueue.top().second;
     if ((pairAckCount == size - 1) && (topQueue == rank) && (pair != -1))
     {
+        incrementClock();
+
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
         println("\tpairQueue:%s",printVector(pairQueue).c_str());
@@ -296,6 +301,7 @@ void tryToPair()
 void exitPairQueue()
 {
     println("Exiting the pair queue after finding pair");
+    incrementClock();
 
     queueClock = -1;
 
@@ -328,6 +334,7 @@ void enterAsteroidQueue()
 
 void asteroidACK(int destination)
 {
+    incrementClock();
     packet_t pkt;
     pkt.ts = lamportClock;
     sendPacket(&pkt, destination, ASTEROID_ACK);
@@ -360,6 +367,7 @@ void tryToDestroyAsteroid()
 void exitAsteroidQueue()
 {
     println("Exiting the asteroid queue after destroying asteroid");
+    incrementClock();
 
     queueClock = -1;
 
