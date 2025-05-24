@@ -384,6 +384,8 @@ void *startKomWatek(void *ptr)
         break;
     }
 
+    return NULL;
+
     /*
         MPI_Status status;
         int is_message = FALSE;
