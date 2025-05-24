@@ -39,9 +39,14 @@ void telepath()
         {
         case REST:
         {
-            println("Sleeping") int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-            debug("sleepTime: %d", sleepTime);
-            sleep(sleepTime);
+            if (!justStarted)
+            {
+                println("I'm exhausted, going to sleep before further work...");
+                int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
+                debug("sleepTime: %d", sleepTime);
+                sleep(sleepTime);
+            }
+            justStarted = false;
 
             changeState(WAIT_PAIR);
 
