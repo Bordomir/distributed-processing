@@ -55,7 +55,7 @@ struct tagNames_t
 
 const char *tag2string(int tag)
 {
-    for (int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
+    for (unsigned int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
     {
         if (tagNames[i].tag == tag)
             return tagNames[i].name;

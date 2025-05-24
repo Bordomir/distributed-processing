@@ -3,7 +3,6 @@
 
 void observatory()
 {
-    int tag;
     while (true)
     {
         incrementClock();
@@ -31,7 +30,6 @@ void observatory()
 
 void telepath()
 {
-    int tag;
     while (true)
     {
         int currentState = getState();

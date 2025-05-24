@@ -51,14 +51,12 @@ void check_thread_support(int provided)
 
 int main(int argc, char **argv)
 {
-    MPI_Status status;
     int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     check_thread_support(provided);
     srand(rank);
     srandom(rank*1);
     inicjuj_typ_pakietu(); // tworzy typ pakietu
-    packet_t pkt;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     lamportClock = 0;
