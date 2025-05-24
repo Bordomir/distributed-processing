@@ -15,7 +15,7 @@ void observatory()
             println("Found asteroid") int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
             debug("amount: %d", amount);
 
-            packet_t *pkt;
+            packet_t *pkt = new packet_t;
             pkt->ts = lamportClock;
             pkt->data = amount;
 
