@@ -52,7 +52,7 @@ void telepath()
         }
         case WAIT_PAIR:
         {
-            enterPairQueue(); // Niezgodne ze sprawozdaniem
+            enterPairQueue();
 
             waitForStateChange(currentState);
             break;

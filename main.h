@@ -52,7 +52,7 @@ extern int asteroidCount;
 extern int pair;
 
 extern int providedMode;
-extern int justStarted;
+extern bool justStarted;
 // typedef enum
 // {
 // InRun,

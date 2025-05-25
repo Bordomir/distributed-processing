@@ -2,7 +2,8 @@
 #include "watek_glowny.h"
 #include "watek_komunikacyjny.h"
 
-int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair, providedMode, justStarted = true;
+int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair, providedMode;
+bool justStarted = true;
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 std::vector<bool> isPairAckReceived;
 std::vector<bool> isAsteroidAckReceived;
