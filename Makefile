@@ -1,16 +1,22 @@
-SOURCES=$(wildcard *.c)
-HEADERS=$(SOURCES:.c=.h)
-FLAGS=-DDEBUG -g
+SOURCES=$(wildcard *.cpp)
+HEADERS=$(SOURCES:.cpp=.h)
+FLAGS=-g
 
 all: main
 
 main: $(SOURCES) $(HEADERS)
-	mpicc $(SOURCES) $(FLAGS) -o main
+	mpic++ $(SOURCES) $(FLAGS) -o main
+
+debug: $(SOURCES) $(HEADERS)
+	mpic++ $(SOURCES) $(FLAGS) -DDEBUG -o main
 
 clear: clean
 
 clean:
-	rm main a.out
+	rm main
 
 run: main
-	mpirun -oversubscribe -np 8 ./main
+	mpirun -oversubscribe --allow-run-as-root -np 8 ./main
+
+drun: debug
+	mpirun --allow-run-as-root -np 8 ./main
