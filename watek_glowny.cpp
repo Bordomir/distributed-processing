@@ -3,7 +3,6 @@
 
 void observatory()
 {
-    int tag;
     while (true)
     {
         incrementClock();
@@ -16,7 +15,7 @@ void observatory()
             println("Found asteroid") int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
             debug("amount: %d", amount);
 
-            packet_t *pkt;
+            packet_t *pkt = new packet_t;
             pkt->ts = lamportClock;
             pkt->data = amount;
 
@@ -24,15 +23,13 @@ void observatory()
             println("Sent messages about %d new asteroids", amount);
         }
         int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        debug("sleepTime: %d", sleepTime);
-        println("Sleeping");
+        println("Sleeping for next %ds", sleepTime);
         sleep(sleepTime);
     }
 }
 
 void telepath()
 {
-    int tag;
     while (true)
     {
         int currentState = getState();
@@ -40,9 +37,14 @@ void telepath()
         {
         case REST:
         {
-            println("Sleeping") int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-            debug("sleepTime: %d", sleepTime);
-            sleep(sleepTime);
+            if (!justStarted)
+            {
+                println("I'm exhausted, going to sleep before further work...");
+                int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
+                debug("sleepTime: %d", sleepTime);
+                sleep(sleepTime);
+            }
+            justStarted = false;
 
             changeState(WAIT_PAIR);
 
@@ -50,16 +52,14 @@ void telepath()
         }
         case WAIT_PAIR:
         {
-            enterPairQueue(); // Niezgodne ze sprawozdaniem
+            enterPairQueue();
 
             waitForStateChange(currentState);
-            println("Paired with other telepath");
             break;
         }
         case PAIRED:
         {
             waitForStateChange(currentState);
-            println("No longer paired with other telepath");
             break;
         }
         case WAIT_ASTEROID:
@@ -67,7 +67,6 @@ void telepath()
             enterAsteroidQueue();
 
             waitForStateChange(currentState);
-            println("No longer paired with other telepath");
             break;
         }
         default:

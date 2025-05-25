@@ -52,6 +52,7 @@ extern int asteroidCount;
 extern int pair;
 
 extern int providedMode;
+extern bool justStarted;
 // typedef enum
 // {
 // InRun,
@@ -88,13 +89,13 @@ extern pthread_cond_t cond;
 
 */
 #ifdef DEBUG
-#define debug(FORMAT, ...) printf("%c[%d;%dm [%d] [t%d]: " FORMAT "%c[%d;%dm\n", 27, (1 + (rank / 7)) % 2, 31 + (6 + rank) % 7, rank, lamportClock, ##__VA_ARGS__, 27, 0, 37);
+#define debug(FORMAT, ...) printf("%c[%d;%dm [%d] [t%d] [%s]: " FORMAT "%c[%d;%dm\n", 27, (1 + (rank / 7)) % 2, 31 + (6 + rank) % 7, rank, lamportClock, tag2string(stan), ##__VA_ARGS__, 27, 0, 37);
 #else
 #define debug(...) ;
 #endif
 
 // makro println - to samo co debug, ale wyświetla się zawsze
-#define println(FORMAT, ...) printf("%c[%d;%dm [%d] [t%d]: " FORMAT "%c[%d;%dm\n", 27, (1 + (rank / 7)) % 2, 31 + (6 + rank) % 7, rank, lamportClock, ##__VA_ARGS__, 27, 0, 37);
+#define println(FORMAT, ...) printf("%c[%d;%dm [%d] [t%d] [%s]: " FORMAT "%c[%d;%dm\n", 27, (1 + (rank / 7)) % 2, 31 + (6 + rank) % 7, rank, lamportClock, tag2string(stan), ##__VA_ARGS__, 27, 0, 37);
 
 int getState();
 void changeState(int);

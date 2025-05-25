@@ -55,7 +55,7 @@ struct tagNames_t
 
 const char *tag2string(int tag)
 {
-    for (int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
+    for (unsigned int i = 0; i < sizeof(tagNames) / sizeof(struct tagNames_t); i++)
     {
         if (tagNames[i].tag == tag)
             return tagNames[i].name;
@@ -140,9 +140,10 @@ void changeState(int newState)
     //     return;
     // }
     stan = newState;
+    println("Changed state to %s", tag2string(newState));
+    incrementClock();
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&stateMut);
-    println("Changed state to %s", tag2string(newState));
 }
 
 void waitForStateChange(int currentState)
@@ -212,6 +213,7 @@ void enterPairQueue()
 
 void pairACK(int destination)
 {
+    incrementClock();
     packet_t pkt;
     pkt.ts = lamportClock;
 
@@ -252,12 +254,14 @@ void tryToSendPairProposal()
 
     if (pairQueue.empty())
     {
-        println("Pair queue is empty");
+        debug("Pair queue is empty");
         return;
     }
     int topQueue = pairQueue.top().second;
     if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pair == -1))
     {
+        incrementClock();
+
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
         println("\tpairQueue:%s",printVector(pairQueue).c_str());
@@ -277,12 +281,14 @@ void tryToPair()
 
     if (pairQueue.empty())
     {
-        println("Pair queue is empty");
+        debug("Pair queue is empty");
         return;
     }
     int topQueue = pairQueue.top().second;
     if ((pairAckCount == size - 1) && (topQueue == rank) && (pair != -1))
     {
+        incrementClock();
+
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
         println("\tpairQueue:%s",printVector(pairQueue).c_str());
@@ -296,6 +302,7 @@ void tryToPair()
 void exitPairQueue()
 {
     println("Exiting the pair queue after finding pair");
+    incrementClock();
 
     queueClock = -1;
 
@@ -328,6 +335,7 @@ void enterAsteroidQueue()
 
 void asteroidACK(int destination)
 {
+    incrementClock();
     packet_t pkt;
     pkt.ts = lamportClock;
     sendPacket(&pkt, destination, ASTEROID_ACK);
@@ -348,8 +356,12 @@ void tryToDestroyAsteroid()
     if (asteroidAckCount >= size - asteroidCount)
     {
         println("Received right to destroy asteroid");
+        incrementClock();
 
+        println("BOOOM, asteroid shattered!");
         pair = -1;
+
+        incrementClock();
 
         exitAsteroidQueue();
 
@@ -360,6 +372,7 @@ void tryToDestroyAsteroid()
 void exitAsteroidQueue()
 {
     println("Exiting the asteroid queue after destroying asteroid");
+    incrementClock();
 
     queueClock = -1;
 
