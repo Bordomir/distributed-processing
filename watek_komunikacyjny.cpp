@@ -5,31 +5,12 @@ void observatoryKom()
 {
     MPI_Status status;
     MPI_Request request;
-    int flag = 1;
     packet_t pakiet;
     while (true)
     {
         // println("Waiting for mesage");
-        if (providedMode == MPI_THREAD_SERIALIZED)
-        {
-            if (flag != 0)
-            {
-                pthread_mutex_lock(&mpiMut);
-                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                pthread_mutex_unlock(&mpiMut);
-                flag = 0;
-            }
-            MPI_Test(&request, &flag, &status);
-        }
-        else
-        {
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        }
 
-        if (flag == 0)
-        {
-            continue;
-        }
+        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         auto l = std::unique_lock<std::mutex>(mtx);
 
@@ -326,21 +307,7 @@ void telepathKom()
     while (true)
     {
         // println("Waiting for message");
-        if (providedMode == MPI_THREAD_SERIALIZED)
-        {
-            if (flag != 0)
-            {
-                pthread_mutex_lock(&mpiMut);
-                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                pthread_mutex_unlock(&mpiMut);
-                flag = 0;
-            }
-            MPI_Test(&request, &flag, &status);
-        }
-        else
-        {
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        }
+        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         auto l = std::unique_lock<std::mutex>(mtx);
 
