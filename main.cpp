@@ -12,6 +12,8 @@ int stan = REST;
 pthread_t threadKom, threadMon;
 pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER, clockMut = PTHREAD_MUTEX_INITIALIZER, mpiMut = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+std::condition_variable cv;
+std::mutex mtx;
 
 void finalizuj()
 {

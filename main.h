@@ -12,6 +12,9 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 
 #include "util.h"
 /* boolean */
@@ -67,8 +70,11 @@ extern bool justStarted;
 extern int stan;
 extern pthread_t threadKom, threadMon;
 
-extern pthread_mutex_t stateMut, clockMut, mpiMut;
-extern pthread_cond_t cond;
+// extern pthread_mutex_t stateMut, clockMut, mpiMut;
+// extern pthread_cond_t cond;
+
+extern std::mutex mtx;
+extern std::condition_variable cv;
 
 /* macro debug - działa jak printf, kiedy zdefiniowano
    DEBUG, kiedy DEBUG niezdefiniowane działa jak instrukcja pusta
@@ -99,7 +105,7 @@ extern pthread_cond_t cond;
 
 int getState();
 void changeState(int);
-void waitForStateChange(int);
+// void waitForStateChange(int, std::unique_lock<std::mutex>);
 
 void incrementClock();
 void changeClock(int);

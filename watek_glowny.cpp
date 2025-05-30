@@ -5,6 +5,7 @@ void observatory()
 {
     while (true)
     {
+        std::lock_guard<std::mutex> lg(mtx);
         incrementClock();
         debug("lamportClock: %d", lamportClock);
 
@@ -32,6 +33,8 @@ void telepath()
 {
     while (true)
     {
+        auto l = std::unique_lock<std::mutex>(mtx);
+
         int currentState = getState();
         switch (currentState)
         {
@@ -54,24 +57,32 @@ void telepath()
         {
             enterPairQueue();
 
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         case PAIRED:
         {
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         case WAIT_ASTEROID:
         {
             enterAsteroidQueue();
 
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         default:
             break;
         }
+
+        l.unlock();
     }
 }
 

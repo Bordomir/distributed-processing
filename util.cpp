@@ -127,16 +127,11 @@ int randomValue(int min, int max)
 
 int getState()
 {
-    int returnState;
-    pthread_mutex_lock(&stateMut);
-    returnState = stan;
-    pthread_mutex_unlock(&stateMut);
-    return returnState;
+    return stan;
 }
 
 void changeState(int newState)
 {
-    pthread_mutex_lock(&stateMut);
     // if (stan==InFinish) {
     // pthread_mutex_unlock( &stateMut );
     //     return;
@@ -144,46 +139,31 @@ void changeState(int newState)
     stan = newState;
     println("Changed state to %s", tag2string(newState));
     incrementClock();
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&stateMut);
 }
 
-void waitForStateChange(int currentState)
-{
-    pthread_mutex_lock(&stateMut);
-    if (currentState != stan)
-    {
-        pthread_mutex_unlock(&stateMut);
-        return;
-    }
-    pthread_cond_wait(&cond, &stateMut);
-    pthread_mutex_unlock(&stateMut);
-}
+// void waitForStateChange(int currentState, std::unique_lock<std::mutex> &ul)
+// {
+//     cv.wait(ul, [currentState]()
+//             { return getState() != currentState; });
+// }
 
 void incrementClock()
 {
-    pthread_mutex_lock(&clockMut);
     lamportClock++;
-    pthread_mutex_unlock(&clockMut);
 }
 
 void changeClock(int newClock)
 {
-    pthread_mutex_lock(&clockMut);
     lamportClock = newClock;
-    pthread_mutex_unlock(&clockMut);
 }
 
 void updateClock(int newClock)
 {
-    pthread_mutex_lock(&clockMut);
     if (lamportClock > newClock)
     {
-        pthread_mutex_unlock(&clockMut);
         return;
     }
     lamportClock = newClock;
-    pthread_mutex_unlock(&clockMut);
 }
 
 void sendAllTelepaths(packet_t *pkt, int tag)

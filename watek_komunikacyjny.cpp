@@ -31,6 +31,8 @@ void observatoryKom()
             continue;
         }
 
+        auto l = std::unique_lock<std::mutex>(mtx);
+
         switch (status.MPI_TAG)
         {
         default:
@@ -39,6 +41,7 @@ void observatoryKom()
             println("Received message %s from %d", tag2string(status.MPI_TAG), status.MPI_SOURCE);
             break;
         }
+        l.unlock();
     }
 }
 
@@ -339,6 +342,8 @@ void telepathKom()
             MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         }
 
+        auto l = std::unique_lock<std::mutex>(mtx);
+
         if (flag == 0)
         {
             continue;
@@ -367,6 +372,8 @@ void telepathKom()
         default:
             break;
         }
+
+        l.unlock();
     }
 }
 
