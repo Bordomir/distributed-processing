@@ -131,6 +131,7 @@ void changeState(int newState)
     stan = newState;
     println("Changed state to %s", tag2string(newState));
     incrementClock();
+    cv.notify_all();
 }
 
 // void waitForStateChange(int currentState, std::unique_lock<std::mutex> &ul)
