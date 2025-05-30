@@ -101,16 +101,8 @@ void sendPacket(packet_t *pkt, int destination, int tag)
     }
     // pkt->src = rank;
 
-    if (providedMode == MPI_THREAD_SERIALIZED)
-    {
-        pthread_mutex_lock(&mpiMut);
-        MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
-        pthread_mutex_unlock(&mpiMut);
-    }
-    else
-    {
-        MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
-    }
+    MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+
     debug("Wysyłam %s do %d", tag2string(tag), destination);
     if (freepkt == 1)
     {
