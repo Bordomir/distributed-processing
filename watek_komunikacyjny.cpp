@@ -49,7 +49,7 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case PAIR_REQ:
     {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
-        
+
         pairACK(status.MPI_SOURCE);
 
         break;
@@ -134,7 +134,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
 
         tryToPair();
 
-        if(pair == status.MPI_SOURCE)
+        if (pair == status.MPI_SOURCE)
         {
             queueClock = -1;
             changeState(PAIRED);
@@ -155,7 +155,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     case PAIR_PROPOSAL:
     {
 
-        if(pair == -1)
+        if (pair == -1)
         {
             pair = status.MPI_SOURCE;
         }
@@ -199,7 +199,7 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
-        
+
         break;
     }
     case PAIR_RELEASE:
@@ -265,7 +265,6 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     case ASTEROID_REQ:
     {
 
-        
         // Process is not in queue yet
         if (queueClock == -1)
         {

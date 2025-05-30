@@ -5,11 +5,13 @@ MPI_Datatype MPI_PAKIET_T;
 std::string printVector(std::vector<bool> vec)
 {
     std::string result = "[";
-    for (bool i: vec)
+    for (bool i : vec)
     {
-        if(i){
+        if (i)
+        {
             result += '1';
-        } else 
+        }
+        else
         {
             result += '0';
         }
@@ -21,7 +23,8 @@ std::string printVector(std::vector<bool> vec)
 std::string printVector(std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> q)
 {
     std::string result = "[";
-    while (! q.empty() ) {
+    while (!q.empty())
+    {
         result += '(';
         result += std::to_string(q.top().first);
         result += ':';
@@ -33,7 +36,6 @@ std::string printVector(std::priority_queue<std::pair<int, int>, std::vector<std
     result += ']';
     return result;
 }
-
 
 struct tagNames_t
 {
@@ -232,25 +234,25 @@ void incrementPairACK(int process)
 
 void tryToSendPairProposal()
 {
-//  [4] [t420]: Changed state to WAIT_PAIR
-//  [4] [t420]: Entering the pair queue to pair with another telepath
-//  [4] [t421]: Sent messages PAIR_REQ to all telepaths
-//  [4] [t428]: Found a pair
-//  [4] [t428]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:4; queueClock:421; isPairAckReceived:[01011111]
-//  [4] [t428]:    pairQueue:[(419:2),(421:4),]
-//  [4] [t428]: Sent PAIR_PROPOSAL to 2
-//  [4] [t428]: Paired with other telepath
-//  [4] [t428]: Changed state to PAIRED
-//  [7] [t422]: Changed state to WAIT_PAIR
-//  [7] [t422]: Entering the pair queue to pair with another telepath
-//  [7] [t423]: Sent messages PAIR_REQ to all telepaths
-//  [2] [t429]: Found a pair
-//  [7] [t431]: Found a pair
-//  [7] [t431]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:7; queueClock:423; isPairAckReceived:[01011111]
-//  [7] [t431]:    pairQueue:[(419:2),(421:4),(423:7),]
-//  [7] [t431]: Sent PAIR_PROPOSAL to 2
-//  [7] [t431]: Paired with other telepath
-//  [7] [t431]: Changed state to PAIRED
+    //  [4] [t420]: Changed state to WAIT_PAIR
+    //  [4] [t420]: Entering the pair queue to pair with another telepath
+    //  [4] [t421]: Sent messages PAIR_REQ to all telepaths
+    //  [4] [t428]: Found a pair
+    //  [4] [t428]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:4; queueClock:421; isPairAckReceived:[01011111]
+    //  [4] [t428]:    pairQueue:[(419:2),(421:4),]
+    //  [4] [t428]: Sent PAIR_PROPOSAL to 2
+    //  [4] [t428]: Paired with other telepath
+    //  [4] [t428]: Changed state to PAIRED
+    //  [7] [t422]: Changed state to WAIT_PAIR
+    //  [7] [t422]: Entering the pair queue to pair with another telepath
+    //  [7] [t423]: Sent messages PAIR_REQ to all telepaths
+    //  [2] [t429]: Found a pair
+    //  [7] [t431]: Found a pair
+    //  [7] [t431]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:7; queueClock:423; isPairAckReceived:[01011111]
+    //  [7] [t431]:    pairQueue:[(419:2),(421:4),(423:7),]
+    //  [7] [t431]: Sent PAIR_PROPOSAL to 2
+    //  [7] [t431]: Paired with other telepath
+    //  [7] [t431]: Changed state to PAIRED
 
     if (pairQueue.empty())
     {
@@ -264,7 +266,7 @@ void tryToSendPairProposal()
 
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
-        println("\tpairQueue:%s",printVector(pairQueue).c_str());
+        println("\tpairQueue:%s", printVector(pairQueue).c_str());
 
         packet_t pkt;
         pkt.ts = lamportClock;
@@ -291,7 +293,7 @@ void tryToPair()
 
         println("Found a pair");
         println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
-        println("\tpairQueue:%s",printVector(pairQueue).c_str());
+        println("\tpairQueue:%s", printVector(pairQueue).c_str());
 
         exitPairQueue();
 
