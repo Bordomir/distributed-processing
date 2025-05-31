@@ -6,7 +6,8 @@ int rank, size, lamportClock, asteroidCount, pair, pairRequestClock, asteroidClo
 bool justStarted = true;
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> asteroidQueue;
-std::vector<int> lastMessageLamportClocks;
+std::vector<int> lastAsteroidMessageLamportClocks; 
+std::vector<int> lastPairMessageLamportClocks; 
 // state_t stan=InRun;
 int stan = REST;
 pthread_t threadKom, threadMon;
@@ -64,7 +65,8 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     lamportClock = 0;
     asteroidCount = 0;
-    lastMessageLamportClocks.resize(size, 0);
+    lastAsteroidMessageLamportClocks.resize(size, 0);
+    lastPairMessageLamportClocks.resize(size, 0);
     providedMode = provided;
     pair = -1;
     pthread_cond_init(&cond, NULL);

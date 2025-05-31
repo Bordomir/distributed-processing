@@ -13,20 +13,20 @@ void observatory()
         debug("percent: %d", percent);
         if (percent <= ASTEROID_FOUND_PROB)
         {
-            println("Found asteroid");
+            // println("Found asteroid");
             int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
             debug("amount: %d", amount);
 
-            packet_t *pkt = new packet_t;
+            packet_t *pkt;// = new packet_t;
             pkt->ts = lamportClock;
             pkt->data = amount;
 
             sendAllTelepaths(pkt, ASTEROID_FOUND);
-            println("Sent messages about %d new asteroids", amount);
+            // println("Sent messages about %d new asteroids", amount);
         }
         int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        println("Sleeping for next %ds", sleepTime);
-        sleep(sleepTime);
+        // println("Sleeping for next %ds", sleepTime);
+        // sleep(sleepTime);
     }
 }
 

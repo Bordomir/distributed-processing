@@ -106,11 +106,11 @@ void inicjuj_typ_pakietu()
 void sendPacket(packet_t *pkt, int destination, int tag)
 {
     int freepkt = 0;
-    if (pkt == 0)
-    {
-        pkt = new packet_t;
-        freepkt = 1;
-    }
+    // if (pkt == 0)
+    // {
+    //     pkt = new packet_t;
+    //     freepkt = 1;
+    // }
     // pkt->src = rank;
 
     MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
@@ -218,10 +218,10 @@ void tryToSendPairProposal()
     }
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
-    println("W tryToSendPairProposal: %d, %s", pairRequestClock, printVector(lastMessageLamportClocks).c_str());
-    for (int i = 1; i < size - 1; i++)
+    // println("W tryToSendPairProposal: %d, %s", pairRequestClock, printVector(lastPairMessageLamportClocks).c_str());
+    for (int i = 1; i < size; i++)
     {
-        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        if (lastPairMessageLamportClocks[i] <= pairRequestClock)
         {
             allProcessesClocksGreaterThanMyReqClock = false;
         }
@@ -273,7 +273,7 @@ void tryToPair()
 
     for (int i = 1; i < size - 1; i++)
     {
-        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        if (lastPairMessageLamportClocks[i] <= pairRequestClock)
         {
             allProcessesClocksGreaterThanMyReqClock = false;
         }
@@ -341,19 +341,19 @@ void tryToDestroyAsteroid()
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
-    println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastMessageLamportClocks).c_str());
-    println("\tasteroidQueue:%s", printVector(asteroidQueue).c_str());
+    // println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastAsteroidMessageLamportClocks).c_str());
+    // println("\tasteroidQueue:%s", printVector(asteroidQueue).c_str());
 
-    for (int i = 1; i < size - 1; i++)
+    for (int i = 1; i < size; i++)
     {
-        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        if (lastAsteroidMessageLamportClocks[i] <= pairRequestClock)
         {
             allProcessesClocksGreaterThanMyReqClock = false;
         }
     }
 
     int topQueue = asteroidQueue.top().second;
-    if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock)
+    if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock && asteroidCount > 0)
     {
         println("Received right to destroy asteroid");
         incrementClock();

@@ -112,6 +112,8 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_ACK:
     {
+        lastPairMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
+
         tryToSendPairProposal();
 
         tryToPair();
@@ -252,6 +254,8 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_ACK:
     {
+        lastAsteroidMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
+
         tryToDestroyAsteroid();
 
         break;
@@ -290,14 +294,13 @@ void telepathKom()
         }
 
         int currentState = getState();
-        if (status.MPI_SOURCE != 0)
-        {
-            println("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
-        }
+        // if (status.MPI_SOURCE != 0)
+        // {
+        //     println("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
+        // }
 
         updateClock(pakiet.ts);
         incrementClock();
-        lastMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
         // if (status.MPI_SOURCE != 0)
         // {
         //     println("lamportClock: %d", lamportClock);
