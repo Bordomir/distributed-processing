@@ -339,11 +339,6 @@ void tryToDestroyAsteroid()
         return;
     }
 
-    if (asteroidQueue.size() <= 1)
-    {
-        return;
-    }
-
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
     println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastMessageLamportClocks).c_str());
@@ -357,9 +352,7 @@ void tryToDestroyAsteroid()
         }
     }
 
-    auto asteroidQueueCopy = asteroidQueue;
-    asteroidQueueCopy.pop();
-    int topQueue = asteroidQueueCopy.top().second;
+    int topQueue = asteroidQueue.top().second;
     if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock)
     {
         println("Received right to destroy asteroid");
