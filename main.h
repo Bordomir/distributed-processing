@@ -15,6 +15,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <stdexcept>
 
 #include "util.h"
 /* boolean */
@@ -45,14 +46,13 @@ extern int rank;
 extern int size;
 
 extern int lamportClock;
-extern int queueClock;
 extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
-extern int pairAckCount;
-extern std::vector<bool> isPairAckReceived;
-extern int asteroidAckCount;
-extern std::vector<bool> isAsteroidAckReceived;
+extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> asteroidQueue;
+extern std::vector<bool> lastMessageLamportClocks;
 extern int asteroidCount;
 extern int pair;
+extern int pairRequestClock;
+extern int asteroidClock;
 
 extern int providedMode;
 extern bool justStarted;
@@ -115,14 +115,12 @@ void sendAllTelepaths(packet_t *, int);
 
 void enterPairQueue();
 void pairACK(int);
-void incrementPairACK(int);
 void tryToSendPairProposal();
 void tryToPair();
 void exitPairQueue();
 
 void enterAsteroidQueue();
 void asteroidACK(int);
-void incrementAsteroidACK(int);
 void tryToDestroyAsteroid();
 void exitAsteroidQueue();
 

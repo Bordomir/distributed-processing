@@ -82,20 +82,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
-        // Process is not in queue yet
-        if (queueClock == -1)
-        {
-            pairACK(status.MPI_SOURCE);
-        }
-        else
-        {
-            // Process has lower priority
-            if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
-            {
-                pairACK(status.MPI_SOURCE);
-            }
-        }
+        pairACK(status.MPI_SOURCE);
 
         tryToSendPairProposal();
 
@@ -105,13 +92,8 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_RELEASE:
     {
-        int process = pairQueue.top().second;
         pairQueue.pop();
-        incrementPairACK(process);
-
-        process = pairQueue.top().second;
         pairQueue.pop();
-        incrementPairACK(process);
         // println("Removed 2 processes from the pair queue");
 
         tryToSendPairProposal();
@@ -120,7 +102,6 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
 
         if (pair == status.MPI_SOURCE)
         {
-            queueClock = -1;
             changeState(PAIRED);
         }
 
@@ -128,8 +109,6 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_ACK:
     {
-        incrementPairACK(status.MPI_SOURCE);
-
         tryToSendPairProposal();
 
         tryToPair();
@@ -249,20 +228,7 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     case ASTEROID_REQ:
     {
 
-        // Process is not in queue yet
-        if (queueClock == -1)
-        {
-            asteroidACK(status.MPI_SOURCE);
-        }
-        else
-        {
-            // Process has lower priority
-            if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
-            {
-                asteroidACK(status.MPI_SOURCE);
-            }
-        }
+        asteroidACK(status.MPI_SOURCE);
 
         break;
     }
@@ -271,14 +237,10 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
         asteroidCount--;
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
-        incrementAsteroidACK(status.MPI_SOURCE);
-
         break;
     }
     case ASTEROID_ACK:
     {
-        incrementAsteroidACK(status.MPI_SOURCE);
-
         tryToDestroyAsteroid();
 
         break;
@@ -321,7 +283,7 @@ void telepathKom()
 
         updateClock(pakiet.ts);
         incrementClock();
-        debug("lamportClock: %d", lamportClock);
+        lastMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
         switch (currentState)
         {
         case REST:

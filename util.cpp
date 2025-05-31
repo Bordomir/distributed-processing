@@ -174,13 +174,10 @@ void enterPairQueue()
     incrementClock();
     debug("lamportClock: %d", lamportClock);
 
-    std::fill(isPairAckReceived.begin(), isPairAckReceived.end(), false);
-    pairAckCount = 0;
-
     int currentClock = lamportClock;
     packet_t pkt;
     pkt.ts = currentClock;
-    queueClock = currentClock;
+    pairRequestClock = currentClock;
 
     sendAllTelepaths(&pkt, PAIR_REQ);
     println("Sent messages PAIR_REQ to all telepaths");
@@ -195,50 +192,39 @@ void pairACK(int destination)
     sendPacket(&pkt, destination, PAIR_ACK);
 }
 
-void incrementPairACK(int process)
-{
-    if (!isPairAckReceived[process])
-    {
-        isPairAckReceived[process] = true;
-        pairAckCount++;
-    }
-    debug("ack: %d", pairAckCount);
-}
-
 void tryToSendPairProposal()
 {
-    //  [4] [t420]: Changed state to WAIT_PAIR
-    //  [4] [t420]: Entering the pair queue to pair with another telepath
-    //  [4] [t421]: Sent messages PAIR_REQ to all telepaths
-    //  [4] [t428]: Found a pair
-    //  [4] [t428]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:4; queueClock:421; isPairAckReceived:[01011111]
-    //  [4] [t428]:    pairQueue:[(419:2),(421:4),]
-    //  [4] [t428]: Sent PAIR_PROPOSAL to 2
-    //  [4] [t428]: Paired with other telepath
-    //  [4] [t428]: Changed state to PAIRED
-    //  [7] [t422]: Changed state to WAIT_PAIR
-    //  [7] [t422]: Entering the pair queue to pair with another telepath
-    //  [7] [t423]: Sent messages PAIR_REQ to all telepaths
-    //  [2] [t429]: Found a pair
-    //  [7] [t431]: Found a pair
-    //  [7] [t431]:    pairAckCount:6; topQueue:2; topQueueClock:419; rank:7; queueClock:423; isPairAckReceived:[01011111]
-    //  [7] [t431]:    pairQueue:[(419:2),(421:4),(423:7),]
-    //  [7] [t431]: Sent PAIR_PROPOSAL to 2
-    //  [7] [t431]: Paired with other telepath
-    //  [7] [t431]: Changed state to PAIRED
-
     if (pairQueue.empty())
     {
         debug("Pair queue is empty");
         return;
     }
-    int topQueue = pairQueue.top().second;
-    if ((pairAckCount == size - 2) && (topQueue != rank) && (isPairAckReceived[rank]) && (pair == -1))
+
+    bool allProcessesClocksGreaterThanMyReqClock = true;
+
+    for (int i = 1; i < size - 1; i++)
+    {
+        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        {
+            allProcessesClocksGreaterThanMyReqClock = false;
+        }
+    }
+
+    if (pair != -1)
+    {
+        throw std::runtime_error("Pair is not none");
+    }
+
+    const int topQueue = pairQueue.top().second;
+
+    auto pairQueueCopy = pairQueue;
+    pairQueueCopy.pop();
+    if (pairQueueCopy.top().second == rank && allProcessesClocksGreaterThanMyReqClock)
     {
         incrementClock();
 
         println("Found a pair");
-        println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
+        println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
         println("\tpairQueue:%s", printVector(pairQueue).c_str());
 
         packet_t pkt;
@@ -259,13 +245,24 @@ void tryToPair()
         debug("Pair queue is empty");
         return;
     }
+
+    bool allProcessesClocksGreaterThanMyReqClock = true;
+
+    for (int i = 1; i < size - 1; i++)
+    {
+        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        {
+            allProcessesClocksGreaterThanMyReqClock = false;
+        }
+    }
+
     int topQueue = pairQueue.top().second;
-    if ((pairAckCount == size - 1) && (topQueue == rank) && (pair != -1))
+    if ((topQueue == rank) && (pair != -1) && allProcessesClocksGreaterThanMyReqClock)
     {
         incrementClock();
 
         println("Found a pair");
-        println("\tpairAckCount:%d; topQueue:%d; topQueueClock:%d; rank:%d; queueClock:%d; isPairAckReceived:%s", pairAckCount, topQueue, pairQueue.top().first, rank, queueClock, printVector(isPairAckReceived).c_str());
+        println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
         println("\tpairQueue:%s", printVector(pairQueue).c_str());
 
         exitPairQueue();
@@ -278,8 +275,6 @@ void exitPairQueue()
 {
     println("Exiting the pair queue after finding pair");
     incrementClock();
-
-    queueClock = -1;
 
     packet_t pkt;
     pkt.ts = lamportClock;
@@ -295,14 +290,10 @@ void enterAsteroidQueue()
     incrementClock();
     debug("lamportClock: %d", lamportClock);
 
-    std::fill(isAsteroidAckReceived.begin(), isAsteroidAckReceived.end(), false);
-    asteroidAckCount = 0;
-
     int currentClock = lamportClock;
-
     packet_t pkt;
     pkt.ts = currentClock;
-    queueClock = currentClock;
+    asteroidClock = currentClock;
 
     sendAllTelepaths(&pkt, ASTEROID_REQ);
     println("Sent messages ASTEROID_REQ to all telepaths");
@@ -316,19 +307,21 @@ void asteroidACK(int destination)
     sendPacket(&pkt, destination, ASTEROID_ACK);
 }
 
-void incrementAsteroidACK(int process)
-{
-    if (!isAsteroidAckReceived[process])
-    {
-        isAsteroidAckReceived[process] = true;
-        asteroidAckCount++;
-    }
-    debug("ack:%d", asteroidAckCount);
-}
-
 void tryToDestroyAsteroid()
 {
-    if (asteroidAckCount >= size - asteroidCount)
+
+    bool allProcessesClocksGreaterThanMyReqClock = true;
+
+    for (int i = 1; i < size - 1; i++)
+    {
+        if (lastMessageLamportClocks[i] <= pairRequestClock)
+        {
+            allProcessesClocksGreaterThanMyReqClock = false;
+        }
+    }
+
+    int topQueue = pairQueue.top().second;
+    if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock)
     {
         println("Received right to destroy asteroid");
         incrementClock();
@@ -348,8 +341,6 @@ void exitAsteroidQueue()
 {
     println("Exiting the asteroid queue after destroying asteroid");
     incrementClock();
-
-    queueClock = -1;
 
     packet_t pkt;
     pkt.ts = lamportClock;
