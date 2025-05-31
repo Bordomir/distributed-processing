@@ -195,7 +195,7 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
         asteroidQueue.pop();
         asteroidQueue.pop();
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
-
+        println("Otrzymałem ASTEROID_RELEASE, wychodzę z pary, a moją parą był %d", pair);
         if (pair == status.MPI_SOURCE)
         {
             pair = -1;
@@ -294,11 +294,18 @@ void telepathKom()
         }
 
         int currentState = getState();
-        debug("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
+        if (status.MPI_SOURCE != 0)
+        {
+            println("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
+        }
 
         updateClock(pakiet.ts);
         incrementClock();
         lastMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
+        // if (status.MPI_SOURCE != 0)
+        // {
+        //     println("lamportClock: %d", lamportClock);
+        // }
         switch (currentState)
         {
         case REST:

@@ -45,8 +45,8 @@ void telepath()
             {
                 println("I'm exhausted, going to sleep before further work...");
                 int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-                debug("sleepTime: %d", sleepTime);
-                sleep(sleepTime);
+                // debug("sleepTime: %d", sleepTime);
+                // sleep(sleepTime);
             }
             justStarted = false;
 
@@ -59,6 +59,7 @@ void telepath()
             enterPairQueue();
 
             // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego WAIT_PAIR");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;
@@ -66,6 +67,7 @@ void telepath()
         case PAIRED:
         {
             // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego PAIRED");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;
@@ -75,6 +77,7 @@ void telepath()
             enterAsteroidQueue();
 
             // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego WAIT_ASTEROID");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;

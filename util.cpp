@@ -218,7 +218,7 @@ void tryToSendPairProposal()
     }
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
-
+    println("W tryToSendPairProposal: %d, %s", pairRequestClock, printVector(lastMessageLamportClocks).c_str());
     for (int i = 1; i < size - 1; i++)
     {
         if (lastMessageLamportClocks[i] <= pairRequestClock)
@@ -345,6 +345,9 @@ void tryToDestroyAsteroid()
     }
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
+
+    println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastMessageLamportClocks).c_str());
+    println("\tasteroidQueue:%s", printVector(asteroidQueue).c_str());
 
     for (int i = 1; i < size - 1; i++)
     {
