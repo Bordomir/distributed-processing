@@ -212,6 +212,11 @@ void tryToSendPairProposal()
         return;
     }
 
+    if (pairQueue.size() <= 1)
+    {
+        return;
+    }
+
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
     for (int i = 1; i < size - 1; i++)
@@ -256,6 +261,11 @@ void tryToPair()
     if (pairQueue.empty())
     {
         debug("Pair queue is empty");
+        return;
+    }
+
+    if (pairQueue.size() <= 1)
+    {
         return;
     }
 
