@@ -37,6 +37,18 @@ std::string printVector(std::priority_queue<std::pair<int, int>, std::vector<std
     return result;
 }
 
+std::string printVector(std::vector<int> vec)
+{
+    std::string result = "[";
+    for (auto el : vec)
+    {
+        result += std::to_string(el);
+        result += ", ";
+    }
+    result += ']';
+    return result;
+}
+
 struct tagNames_t
 {
     const char *name;
@@ -212,7 +224,8 @@ void tryToSendPairProposal()
 
     if (pair != -1)
     {
-        throw std::runtime_error("Pair is not none");
+        return;
+        // throw std::runtime_error("Pair is not none");
     }
 
     const int topQueue = pairQueue.top().second;

@@ -48,7 +48,7 @@ extern int size;
 extern int lamportClock;
 extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> asteroidQueue;
-extern std::vector<bool> lastMessageLamportClocks;
+extern std::vector<int> lastMessageLamportClocks;
 extern int asteroidCount;
 extern int pair;
 extern int pairRequestClock;

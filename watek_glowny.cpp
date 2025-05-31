@@ -13,7 +13,8 @@ void observatory()
         debug("percent: %d", percent);
         if (percent <= ASTEROID_FOUND_PROB)
         {
-            println("Found asteroid") int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
+            println("Found asteroid");
+            int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
             debug("amount: %d", amount);
 
             packet_t *pkt = new packet_t;

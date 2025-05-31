@@ -6,7 +6,7 @@ int rank, size, lamportClock, asteroidCount, pair, pairRequestClock, asteroidClo
 bool justStarted = true;
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
 std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> asteroidQueue;
-std::vector<bool> lastMessageLamportClocks;
+std::vector<int> lastMessageLamportClocks;
 // state_t stan=InRun;
 int stan = REST;
 pthread_t threadKom, threadMon;
