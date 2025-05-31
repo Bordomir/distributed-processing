@@ -333,6 +333,17 @@ void asteroidACK(int destination)
 void tryToDestroyAsteroid()
 {
 
+    if (asteroidQueue.empty())
+    {
+        debug("Asteroid queue is empty");
+        return;
+    }
+
+    if (asteroidQueue.size() <= 1)
+    {
+        return;
+    }
+
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
     for (int i = 1; i < size - 1; i++)
@@ -343,7 +354,9 @@ void tryToDestroyAsteroid()
         }
     }
 
-    int topQueue = pairQueue.top().second;
+    auto asteroidQueueCopy = asteroidQueue;
+    asteroidQueueCopy.pop();
+    int topQueue = asteroidQueueCopy.top().second;
     if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock)
     {
         println("Received right to destroy asteroid");

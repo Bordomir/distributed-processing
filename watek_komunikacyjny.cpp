@@ -48,6 +48,8 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -55,6 +57,8 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.pop();
+        asteroidQueue.pop();
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -129,6 +133,8 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -136,6 +142,8 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.pop();
+        asteroidQueue.pop();
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -175,6 +183,8 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -182,6 +192,8 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.pop();
+        asteroidQueue.pop();
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         if (pair == status.MPI_SOURCE)
@@ -227,6 +239,7 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         asteroidACK(status.MPI_SOURCE);
 
@@ -235,6 +248,8 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.pop();
+        asteroidQueue.pop();
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
