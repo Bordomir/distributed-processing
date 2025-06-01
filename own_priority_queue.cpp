@@ -48,6 +48,19 @@ bool SimplePriorityQueue::x_is_in_first_k_elements(int x, int k)
     return false;
 }
 
+void SimplePriorityQueue::remove_first_occurence_of_x(int x)
+{
+    for (auto it = data.begin(); it != data.end(); ++it)
+    {
+        if (it->second == x)
+        {
+            data.erase(it);
+            break;
+        }
+    }
+    sort_desc();
+}
+
 bool SimplePriorityQueue::empty() const
 {
     return data.empty();

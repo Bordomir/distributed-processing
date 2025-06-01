@@ -19,6 +19,7 @@ public:
     const std::pair<int, int> &top();
     const std::pair<int, int> &second_top();
     bool x_is_in_first_k_elements(int x, int k);
+    void remove_first_occurence_of_x(int x);
     bool empty() const;
     size_t size() const;
     std::string as_printable();

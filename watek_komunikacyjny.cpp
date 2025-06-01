@@ -57,7 +57,7 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
-        asteroidQueue.pop();
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -143,7 +143,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
-        asteroidQueue.pop();
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -192,7 +192,7 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
-        asteroidQueue.pop();
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
         println("Otrzymałem ASTEROID_RELEASE, wychodzę z pary, a moją parą był %d", pair);
         if (pair == status.MPI_SOURCE)
@@ -247,7 +247,7 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
-        asteroidQueue.pop();
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;

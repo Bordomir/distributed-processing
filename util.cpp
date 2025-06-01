@@ -352,8 +352,7 @@ void tryToDestroyAsteroid()
         }
     }
 
-    int topQueue = asteroidQueue.top().second;
-    if ((topQueue == rank) && allProcessesClocksGreaterThanMyReqClock && asteroidCount > 0)
+    if (asteroidQueue.x_is_in_first_k_elements(rank, asteroidCount) && allProcessesClocksGreaterThanMyReqClock)
     {
         println("Received right to destroy asteroid");
         incrementClock();
