@@ -218,7 +218,7 @@ void tryToSendPairProposal()
     }
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
-    // println("W tryToSendPairProposal: %d, %s", pairRequestClock, printVector(lastPairMessageLamportClocks).c_str());
+    // println("W tryToSendPairProposal: %d, %s; pairQueue: %s", pairRequestClock, printVector(lastPairMessageLamportClocks).c_str(), pairQueue.as_printable().c_str());
     for (int i = 1; i < size; i++)
     {
         if (lastPairMessageLamportClocks[i] <= pairRequestClock)

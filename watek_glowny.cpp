@@ -3,6 +3,9 @@
 
 void observatory()
 {
+    using namespace std::chrono_literals;
+
+    auto start = std::chrono::steady_clock::now();
     while (true)
     {
         auto l = std::unique_lock<std::mutex>(mtx);
@@ -22,20 +25,44 @@ void observatory()
             pkt->data = amount;
 
             sendAllTelepaths(pkt, ASTEROID_FOUND);
-            // println("Sent messages about %d new asteroids", amount);
+            println("Sent messages about %d new asteroids", amount);
         }
         l.unlock();
-        int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
+
+        // int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
         // println("Sleeping for next %ds", sleepTime);
-        // sleep(sleepTime);
+
+        std::this_thread::sleep_for(10ms);
+
+        auto end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+
+        if (duration > 30)
+        {
+            println("Sleeping forever...");
+            while (true)
+            {
+                std::this_thread::sleep_for(std::chrono::hours(24));
+            }
+        }
     }
 }
 
 void telepath()
 {
+    auto start = std::chrono::steady_clock::now();
+
     while (true)
     {
         auto l = std::unique_lock<std::mutex>(mtx);
+
+        auto end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+
+        if (duration > 1)
+        {
+            println("AsteroidCount: %d", asteroidCount);
+        }
 
         int currentState = getState();
         switch (currentState)
