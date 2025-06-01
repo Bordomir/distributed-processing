@@ -1,18 +1,18 @@
 #include "own_priority_queue.h"
 
-void SimplePriorityQueue::sort_desc()
+void SimplePriorityQueue::sort_asc()
 {
     std::sort(data.begin(), data.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b)
               {
                   if (a.first != b.first)
-                      return a.first > b.first; 
-                  return a.second > b.second; });
+                      return a.first < b.first; 
+                  return a.second < b.second; });
 }
 
 void SimplePriorityQueue::push(const std::pair<int, int> &value)
 {
     data.push_back(value);
-    sort_desc();
+    sort_asc();
 }
 
 void SimplePriorityQueue::pop()
@@ -38,7 +38,8 @@ const std::pair<int, int> &SimplePriorityQueue::second_top()
 
 bool SimplePriorityQueue::x_is_in_first_k_elements(int x, int k)
 {
-    for (size_t i = 0; i < k; i++)
+    int to_check_count = std::min(k, (int)data.size());
+    for (size_t i = 0; i < to_check_count; i++)
     {
         if (data[i].second == x)
         {
@@ -58,7 +59,7 @@ void SimplePriorityQueue::remove_first_occurence_of_x(int x)
             break;
         }
     }
-    sort_desc();
+    sort_asc();
 }
 
 bool SimplePriorityQueue::empty() const

@@ -16,6 +16,8 @@
 #include <condition_variable>
 #include <thread>
 #include <stdexcept>
+#include <chrono>
+#include <math.h>
 
 #include "util.h"
 #include "own_priority_queue.h"

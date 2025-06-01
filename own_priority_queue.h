@@ -11,7 +11,7 @@ class SimplePriorityQueue
 private:
     std::vector<std::pair<int, int>> data;
 
-    void sort_desc();
+    void sort_asc();
 
 public:
     void push(const std::pair<int, int> &value);
