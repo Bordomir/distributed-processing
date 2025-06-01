@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include "util.h"
+#include "own_priority_queue.h"
 /* boolean */
 // #define TRUE 1
 // #define FALSE 0
@@ -46,8 +47,8 @@ extern int rank;
 extern int size;
 
 extern int lamportClock;
-extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
-extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> asteroidQueue;
+extern SimplePriorityQueue pairQueue;
+extern SimplePriorityQueue asteroidQueue;
 extern std::vector<int> lastAsteroidMessageLamportClocks;
 extern std::vector<int> lastPairMessageLamportClocks;
 extern int asteroidCount;

@@ -21,6 +21,7 @@ public:
     bool x_is_in_first_k_elements(int x, int k);
     bool empty() const;
     size_t size() const;
+    std::string as_printable();
 };
 
 #endif

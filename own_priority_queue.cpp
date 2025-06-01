@@ -57,3 +57,19 @@ size_t SimplePriorityQueue::size() const
 {
     return data.size();
 }
+
+std::string SimplePriorityQueue::as_printable()
+{
+    std::string result = "[";
+    for (auto el : data)
+    {
+        result += '(';
+        result += std::to_string(el.first);
+        result += ':';
+        result += std::to_string(el.second);
+        result += ')';
+        result += ',';
+    }
+    result += ']';
+    return result;
+}

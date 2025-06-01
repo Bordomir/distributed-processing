@@ -243,7 +243,7 @@ void tryToSendPairProposal()
 
         println("Found a pair");
         println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
-        println("\tpairQueue:%s", printVector(pairQueue).c_str());
+        println("\tpairQueue:%s", pairQueue.as_printable().c_str());
 
         packet_t pkt;
         pkt.ts = lamportClock;
@@ -286,7 +286,7 @@ void tryToPair()
 
         println("Found a pair");
         println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
-        println("\tpairQueue:%s", printVector(pairQueue).c_str());
+        println("\tpairQueue:%s", pairQueue.as_printable().c_str());
 
         exitPairQueue();
 
@@ -342,7 +342,7 @@ void tryToDestroyAsteroid()
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
     // println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastAsteroidMessageLamportClocks).c_str());
-    // println("\tasteroidQueue:%s", printVector(asteroidQueue).c_str());
+    // println("\tasteroidQueue:%s", asteroidQueue.as_printable().c_str());
 
     for (int i = 1; i < size; i++)
     {
