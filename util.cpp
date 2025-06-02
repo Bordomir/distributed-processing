@@ -271,7 +271,7 @@ void tryToPair()
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
-    for (int i = 1; i < size - 1; i++)
+    for (int i = 1; i < size; i++)
     {
         if (lastPairMessageLamportClocks[i] <= pairRequestClock)
         {
