@@ -5,6 +5,7 @@ void observatory()
 {
     while (true)
     {
+        auto l = std::unique_lock<std::mutex>(mtx);
         incrementClock();
         debug("lamportClock: %d", lamportClock);
 
@@ -12,7 +13,8 @@ void observatory()
         debug("percent: %d", percent);
         if (percent <= ASTEROID_FOUND_PROB)
         {
-            println("Found asteroid") int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
+            // println("Found asteroid");
+            int amount = randomValue(MIN_ASTEROID_FOUND, MAX_ASTEROID_FOUND);
             debug("amount: %d", amount);
 
             packet_t *pkt = new packet_t;
@@ -20,11 +22,12 @@ void observatory()
             pkt->data = amount;
 
             sendAllTelepaths(pkt, ASTEROID_FOUND);
-            println("Sent messages about %d new asteroids", amount);
+            // println("Sent messages about %d new asteroids", amount);
         }
+        l.unlock();
         int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        println("Sleeping for next %ds", sleepTime);
-        sleep(sleepTime);
+        // println("Sleeping for next %ds", sleepTime);
+        // sleep(sleepTime);
     }
 }
 
@@ -32,6 +35,8 @@ void telepath()
 {
     while (true)
     {
+        auto l = std::unique_lock<std::mutex>(mtx);
+
         int currentState = getState();
         switch (currentState)
         {
@@ -41,8 +46,8 @@ void telepath()
             {
                 println("I'm exhausted, going to sleep before further work...");
                 int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-                debug("sleepTime: %d", sleepTime);
-                sleep(sleepTime);
+                // debug("sleepTime: %d", sleepTime);
+                // sleep(sleepTime);
             }
             justStarted = false;
 
@@ -54,24 +59,35 @@ void telepath()
         {
             enterPairQueue();
 
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego WAIT_PAIR");
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         case PAIRED:
         {
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego PAIRED");
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         case WAIT_ASTEROID:
         {
             enterAsteroidQueue();
 
-            waitForStateChange(currentState);
+            // waitForStateChange(currentState, l);
+            println("Czekam na zmianę stanu z obecnego WAIT_ASTEROID");
+            cv.wait(l, [currentState]()
+                    { return getState() != currentState; });
             break;
         }
         default:
             break;
         }
+
+        l.unlock();
     }
 }
 

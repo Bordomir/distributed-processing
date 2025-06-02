@@ -2,16 +2,19 @@
 #include "watek_glowny.h"
 #include "watek_komunikacyjny.h"
 
-int rank, size, lamportClock, queueClock, pairAckCount, asteroidAckCount, asteroidCount, pair, providedMode;
+int rank, size, lamportClock, asteroidCount, pair, pairRequestClock, asteroidClock, providedMode;
 bool justStarted = true;
-std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
-std::vector<bool> isPairAckReceived;
-std::vector<bool> isAsteroidAckReceived;
+SimplePriorityQueue pairQueue;
+SimplePriorityQueue asteroidQueue;
+std::vector<int> lastAsteroidMessageLamportClocks; 
+std::vector<int> lastPairMessageLamportClocks; 
 // state_t stan=InRun;
 int stan = REST;
 pthread_t threadKom, threadMon;
 pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER, clockMut = PTHREAD_MUTEX_INITIALIZER, mpiMut = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+std::condition_variable cv;
+std::mutex mtx;
 
 void finalizuj()
 {
@@ -61,10 +64,9 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     lamportClock = 0;
-    queueClock = -1;
     asteroidCount = 0;
-    isPairAckReceived.resize(size, false);
-    isAsteroidAckReceived.resize(size, false);
+    lastAsteroidMessageLamportClocks.resize(size, 0);
+    lastPairMessageLamportClocks.resize(size, 0);
     providedMode = provided;
     pair = -1;
     pthread_cond_init(&cond, NULL);

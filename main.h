@@ -12,8 +12,15 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+#include <stdexcept>
+#include <chrono>
+#include <math.h>
 
 #include "util.h"
+#include "own_priority_queue.h"
 /* boolean */
 // #define TRUE 1
 // #define FALSE 0
@@ -42,14 +49,14 @@ extern int rank;
 extern int size;
 
 extern int lamportClock;
-extern int queueClock;
-extern std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pairQueue;
-extern int pairAckCount;
-extern std::vector<bool> isPairAckReceived;
-extern int asteroidAckCount;
-extern std::vector<bool> isAsteroidAckReceived;
+extern SimplePriorityQueue pairQueue;
+extern SimplePriorityQueue asteroidQueue;
+extern std::vector<int> lastAsteroidMessageLamportClocks;
+extern std::vector<int> lastPairMessageLamportClocks;
 extern int asteroidCount;
 extern int pair;
+extern int pairRequestClock;
+extern int asteroidClock;
 
 extern int providedMode;
 extern bool justStarted;
@@ -67,8 +74,11 @@ extern bool justStarted;
 extern int stan;
 extern pthread_t threadKom, threadMon;
 
-extern pthread_mutex_t stateMut, clockMut, mpiMut;
-extern pthread_cond_t cond;
+// extern pthread_mutex_t stateMut, clockMut, mpiMut;
+// extern pthread_cond_t cond;
+
+extern std::mutex mtx;
+extern std::condition_variable cv;
 
 /* macro debug - działa jak printf, kiedy zdefiniowano
    DEBUG, kiedy DEBUG niezdefiniowane działa jak instrukcja pusta
@@ -99,7 +109,7 @@ extern pthread_cond_t cond;
 
 int getState();
 void changeState(int);
-void waitForStateChange(int);
+// void waitForStateChange(int, std::unique_lock<std::mutex>);
 
 void incrementClock();
 void changeClock(int);
@@ -109,14 +119,12 @@ void sendAllTelepaths(packet_t *, int);
 
 void enterPairQueue();
 void pairACK(int);
-void incrementPairACK(int);
 void tryToSendPairProposal();
 void tryToPair();
 void exitPairQueue();
 
 void enterAsteroidQueue();
 void asteroidACK(int);
-void incrementAsteroidACK(int);
 void tryToDestroyAsteroid();
 void exitAsteroidQueue();
 

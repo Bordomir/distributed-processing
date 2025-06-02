@@ -5,31 +5,14 @@ void observatoryKom()
 {
     MPI_Status status;
     MPI_Request request;
-    int flag = 1;
     packet_t pakiet;
     while (true)
     {
         // println("Waiting for mesage");
-        if (providedMode == MPI_THREAD_SERIALIZED)
-        {
-            if (flag != 0)
-            {
-                pthread_mutex_lock(&mpiMut);
-                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                pthread_mutex_unlock(&mpiMut);
-                flag = 0;
-            }
-            MPI_Test(&request, &flag, &status);
-        }
-        else
-        {
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        }
 
-        if (flag == 0)
-        {
-            continue;
-        }
+        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        auto l = std::unique_lock<std::mutex>(mtx);
 
         switch (status.MPI_TAG)
         {
@@ -39,6 +22,7 @@ void observatoryKom()
             println("Received message %s from %d", tag2string(status.MPI_TAG), status.MPI_SOURCE);
             break;
         }
+        l.unlock();
     }
 }
 
@@ -49,7 +33,7 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case PAIR_REQ:
     {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
-        
+
         pairACK(status.MPI_SOURCE);
 
         break;
@@ -64,6 +48,8 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -71,6 +57,7 @@ void manageMessageREST(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -98,20 +85,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     {
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
-        // Process is not in queue yet
-        if (queueClock == -1)
-        {
-            pairACK(status.MPI_SOURCE);
-        }
-        else
-        {
-            // Process has lower priority
-            if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
-            {
-                pairACK(status.MPI_SOURCE);
-            }
-        }
+        pairACK(status.MPI_SOURCE);
 
         tryToSendPairProposal();
 
@@ -121,22 +95,16 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_RELEASE:
     {
-        int process = pairQueue.top().second;
         pairQueue.pop();
-        incrementPairACK(process);
-
-        process = pairQueue.top().second;
         pairQueue.pop();
-        incrementPairACK(process);
         // println("Removed 2 processes from the pair queue");
 
         tryToSendPairProposal();
 
         tryToPair();
 
-        if(pair == status.MPI_SOURCE)
+        if (pair == status.MPI_SOURCE)
         {
-            queueClock = -1;
             changeState(PAIRED);
         }
 
@@ -144,7 +112,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case PAIR_ACK:
     {
-        incrementPairACK(status.MPI_SOURCE);
+        lastPairMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
 
         tryToSendPairProposal();
 
@@ -155,7 +123,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     case PAIR_PROPOSAL:
     {
 
-        if(pair == -1)
+        if (pair == -1)
         {
             pair = status.MPI_SOURCE;
         }
@@ -166,6 +134,8 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -173,6 +143,7 @@ void manageMessageWAIT_PAIR(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
 
         break;
@@ -199,7 +170,7 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
         pairQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
         pairACK(status.MPI_SOURCE);
-        
+
         break;
     }
     case PAIR_RELEASE:
@@ -212,6 +183,8 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
+
         asteroidACK(status.MPI_SOURCE);
 
         break;
@@ -219,8 +192,9 @@ void manageMessagePAIRED(packet_t pakiet, MPI_Status status)
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
-
+        println("Otrzymałem ASTEROID_RELEASE, wychodzę z pary, a moją parą był %d", pair);
         if (pair == status.MPI_SOURCE)
         {
             pair = -1;
@@ -264,37 +238,23 @@ void manageMessageWAIT_ASTEROID(packet_t pakiet, MPI_Status status)
     }
     case ASTEROID_REQ:
     {
+        asteroidQueue.push(std::make_pair(pakiet.ts, status.MPI_SOURCE));
 
-        
-        // Process is not in queue yet
-        if (queueClock == -1)
-        {
-            asteroidACK(status.MPI_SOURCE);
-        }
-        else
-        {
-            // Process has lower priority
-            if (queueClock > pakiet.ts ||
-                (queueClock == pakiet.ts && rank >= status.MPI_SOURCE))
-            {
-                asteroidACK(status.MPI_SOURCE);
-            }
-        }
+        asteroidACK(status.MPI_SOURCE);
 
         break;
     }
     case ASTEROID_RELEASE:
     {
         asteroidCount--;
+        asteroidQueue.remove_first_occurence_of_x(status.MPI_SOURCE);
         // println("Destroyed 1 asteroid and removed 1 process from the asteroid queue");
-
-        incrementAsteroidACK(status.MPI_SOURCE);
 
         break;
     }
     case ASTEROID_ACK:
     {
-        incrementAsteroidACK(status.MPI_SOURCE);
+        lastAsteroidMessageLamportClocks[status.MPI_SOURCE] = pakiet.ts;
 
         tryToDestroyAsteroid();
 
@@ -324,21 +284,9 @@ void telepathKom()
     while (true)
     {
         // println("Waiting for message");
-        if (providedMode == MPI_THREAD_SERIALIZED)
-        {
-            if (flag != 0)
-            {
-                pthread_mutex_lock(&mpiMut);
-                MPI_Irecv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                pthread_mutex_unlock(&mpiMut);
-                flag = 0;
-            }
-            MPI_Test(&request, &flag, &status);
-        }
-        else
-        {
-            MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        }
+        MPI_Recv(&pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        auto l = std::unique_lock<std::mutex>(mtx);
 
         if (flag == 0)
         {
@@ -346,11 +294,17 @@ void telepathKom()
         }
 
         int currentState = getState();
-        debug("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
+        // if (status.MPI_SOURCE != 0)
+        // {
+        //     println("Received message in state %s with tag %s from %d", tag2string(currentState), tag2string(status.MPI_TAG), status.MPI_SOURCE);
+        // }
 
         updateClock(pakiet.ts);
         incrementClock();
-        debug("lamportClock: %d", lamportClock);
+        // if (status.MPI_SOURCE != 0)
+        // {
+        //     println("lamportClock: %d", lamportClock);
+        // }
         switch (currentState)
         {
         case REST:
@@ -368,6 +322,8 @@ void telepathKom()
         default:
             break;
         }
+
+        l.unlock();
     }
 }
 
