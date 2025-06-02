@@ -29,40 +29,41 @@ void observatory()
         }
         l.unlock();
 
-        // int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
-        // println("Sleeping for next %ds", sleepTime);
+        int sleepTime = randomValue(OBSERVATORY_SLEEP_MIN, OBSERVATORY_SLEEP_MAX);
+        debug("Sleeping for next %ds", sleepTime);
+        sleep(sleepTime);
 
-        std::this_thread::sleep_for(10ms);
+        // std::this_thread::sleep_for(10ms);
 
-        auto end = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+        // auto end = std::chrono::steady_clock::now();
+        // auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
-        if (duration > 30)
-        {
-            println("Sleeping forever...");
-            while (true)
-            {
-                std::this_thread::sleep_for(std::chrono::hours(24));
-            }
-        }
+        // if (duration > 30)
+        // {
+        //     println("Sleeping forever...");
+        //     while (true)
+        //     {
+        //         std::this_thread::sleep_for(std::chrono::hours(24));
+        //     }
+        // }
     }
 }
 
 void telepath()
 {
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
 
     while (true)
     {
         auto l = std::unique_lock<std::mutex>(mtx);
 
-        auto end = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+        // auto end = std::chrono::steady_clock::now();
+        // auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
-        if (duration > 1)
-        {
-            println("AsteroidCount: %d", asteroidCount);
-        }
+        // if (duration > 1)
+        // {
+        //     println("AsteroidCount: %d", asteroidCount);
+        // }
 
         int currentState = getState();
         switch (currentState)
@@ -72,9 +73,11 @@ void telepath()
             if (!justStarted)
             {
                 println("I'm exhausted, going to sleep before further work...");
+                l.unlock();
                 int sleepTime = randomValue(TELEPATH_SLEEP_MIN, TELEPATH_SLEEP_MAX);
-                // debug("sleepTime: %d", sleepTime);
-                // sleep(sleepTime);
+                debug("sleepTime: %d", sleepTime);
+                sleep(sleepTime);
+                l.lock();
             }
             justStarted = false;
 
@@ -87,7 +90,7 @@ void telepath()
             enterPairQueue();
 
             // waitForStateChange(currentState, l);
-            println("Czekam na zmianę stanu z obecnego WAIT_PAIR");
+            debug("Czekam na zmianę stanu z obecnego WAIT_PAIR");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;
@@ -95,7 +98,7 @@ void telepath()
         case PAIRED:
         {
             // waitForStateChange(currentState, l);
-            println("Czekam na zmianę stanu z obecnego PAIRED");
+            debug("Czekam na zmianę stanu z obecnego PAIRED");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;
@@ -105,7 +108,7 @@ void telepath()
             enterAsteroidQueue();
 
             // waitForStateChange(currentState, l);
-            println("Czekam na zmianę stanu z obecnego WAIT_ASTEROID");
+            debug("Czekam na zmianę stanu z obecnego WAIT_ASTEROID");
             cv.wait(l, [currentState]()
                     { return getState() != currentState; });
             break;

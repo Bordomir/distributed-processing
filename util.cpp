@@ -218,7 +218,7 @@ void tryToSendPairProposal()
     }
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
-    // println("W tryToSendPairProposal: %d, %s; pairQueue: %s", pairRequestClock, printVector(lastPairMessageLamportClocks).c_str(), pairQueue.as_printable().c_str());
+    debug("W tryToSendPairProposal: %d, %s; pairQueue: %s", pairRequestClock, printVector(lastPairMessageLamportClocks).c_str(), pairQueue.as_printable().c_str());
     for (int i = 1; i < size; i++)
     {
         if (lastPairMessageLamportClocks[i] <= pairRequestClock)
@@ -242,8 +242,8 @@ void tryToSendPairProposal()
         incrementClock();
 
         println("Found a pair");
-        println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
-        println("\tpairQueue:%s", pairQueue.as_printable().c_str());
+        debug("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
+        debug("\tpairQueue:%s", pairQueue.as_printable().c_str());
 
         packet_t pkt;
         pkt.ts = lamportClock;
@@ -285,8 +285,8 @@ void tryToPair()
         incrementClock();
 
         println("Found a pair");
-        println("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
-        println("\tpairQueue:%s", pairQueue.as_printable().c_str());
+        debug("\ttopQueue:%d; topQueueClock:%d; rank:%d", topQueue, pairQueue.top().first, rank);
+        debug("\tpairQueue:%s", pairQueue.as_printable().c_str());
 
         exitPairQueue();
 
@@ -341,8 +341,8 @@ void tryToDestroyAsteroid()
 
     bool allProcessesClocksGreaterThanMyReqClock = true;
 
-    // println("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastAsteroidMessageLamportClocks).c_str());
-    // println("\tasteroidQueue:%s", asteroidQueue.as_printable().c_str());
+    debug("W tryToDestroyAsteroid: %d, %s", pairRequestClock, printVector(lastAsteroidMessageLamportClocks).c_str());
+    debug("\tasteroidQueue:%s", asteroidQueue.as_printable().c_str());
 
     for (int i = 1; i < size; i++)
     {
